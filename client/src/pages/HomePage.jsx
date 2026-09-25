@@ -44,7 +44,7 @@ export default function HomePage({
         
         <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-secondary-fixed text-on-secondary-fixed shadow-sm">
           <span className="material-symbols-outlined text-secondary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
-          <span className="font-mono text-xs font-bold uppercase tracking-wider">University Hackathon Edition 2025</span>
+          <span className="font-mono text-xs font-bold uppercase tracking-wider">University Hackathon Edition 2026</span>
         </div>
 
         {/* Hero Title & Subtext */}
