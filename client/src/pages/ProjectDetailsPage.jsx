@@ -308,7 +308,7 @@ export default function ProjectDetailsPage({
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-base font-bold text-on-surface">Deliverables Roadmap</h3>
-              <p className="text-xs text-on-surface-variant">Escrow payouts released as milestones pass CI checks</p>
+              <p className="text-xs text-on-surface-variant">Payouts released as milestones are approved (simulated in demo)</p>
             </div>
             <span className="font-mono text-xs bg-surface-container px-2.5 py-1 rounded-full text-on-surface font-semibold">
               3 Milestones

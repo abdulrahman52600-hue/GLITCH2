@@ -23,6 +23,17 @@ export default function CompanyDashboardPage({
     p.companyId === user?._id || p.companyName === user?.companyName || user?.role === 'admin'
   );
 
+  // Live stats computed from data
+  const allCompanyApps = applications.filter(a => 
+    a.companyId === user?._id || a.companyName === user?.companyName || user?.role === 'admin'
+  );
+  const avgMatch = allCompanyApps.length
+    ? Math.round(allCompanyApps.reduce((s, a) => s + (a.matchPercentage || 0), 0) / allCompanyApps.length)
+    : 0;
+  const stipendTotal = myProjects.reduce(
+    (s, p) => s + (parseInt(String(p.stipend || '').replace(/[^0-9]/g, ''), 10) || 0), 0
+  );
+
   // Applications submitted to company's projects
   let companyApplications = applications.filter(a => 
     a.companyId === user?._id || a.companyName === user?.companyName || user?.role === 'admin'
@@ -149,7 +160,7 @@ export default function CompanyDashboardPage({
               <span className="font-mono text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">Live</span>
             </div>
             <div className="mt-3">
-              <div className="text-xl font-extrabold text-on-surface">3</div>
+              <div className="text-xl font-extrabold text-on-surface">{myProjects.length}</div>
               <div className="text-xs text-on-surface-variant truncate font-medium">Active Sprints</div>
             </div>
           </div>
@@ -159,11 +170,11 @@ export default function CompanyDashboardPage({
               <span className="w-8 h-8 rounded-lg bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed">
                 <span className="material-symbols-outlined text-[18px]">group</span>
               </span>
-              <span className="font-mono text-[10px] font-bold text-secondary bg-secondary/10 px-1.5 py-0.5 rounded">+4 new</span>
+              <span className="font-mono text-[10px] font-bold text-secondary bg-secondary/10 px-1.5 py-0.5 rounded">Total</span>
             </div>
             <div className="mt-3">
-              <div className="text-xl font-extrabold text-on-surface">12</div>
-              <div className="text-xs text-on-surface-variant truncate font-medium">Candidates Reviewing</div>
+              <div className="text-xl font-extrabold text-on-surface">{allCompanyApps.length}</div>
+              <div className="text-xs text-on-surface-variant truncate font-medium">Total Applicants</div>
             </div>
           </div>
 
@@ -172,10 +183,10 @@ export default function CompanyDashboardPage({
               <span className="w-8 h-8 rounded-lg bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed">
                 <span className="material-symbols-outlined text-[18px]">target</span>
               </span>
-              <span className="font-mono text-[10px] font-bold text-tertiary bg-tertiary/10 px-1.5 py-0.5 rounded">Top 2%</span>
+              <span className="font-mono text-[10px] font-bold text-tertiary bg-tertiary/10 px-1.5 py-0.5 rounded">Avg</span>
             </div>
             <div className="mt-3">
-              <div className="text-xl font-extrabold text-on-surface">94%</div>
+              <div className="text-xl font-extrabold text-on-surface">{avgMatch}%</div>
               <div className="text-xs text-on-surface-variant truncate font-medium">Avg Match Score</div>
             </div>
           </div>
@@ -185,11 +196,11 @@ export default function CompanyDashboardPage({
               <span className="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
                 <span className="material-symbols-outlined text-[18px]">payments</span>
               </span>
-              <span className="font-mono text-[10px] font-bold text-[#244b16] bg-[#B8D8A2]/30 px-1.5 py-0.5 rounded">Escrow</span>
+              <span className="font-mono text-[10px] font-bold text-[#244b16] bg-[#B8D8A2]/30 px-1.5 py-0.5 rounded">Budget</span>
             </div>
             <div className="mt-3">
-              <div className="text-xl font-extrabold text-on-surface">₹3,80,000</div>
-              <div className="text-xs text-on-surface-variant truncate font-medium">Disbursed to Talent</div>
+              <div className="text-xl font-extrabold text-on-surface">₹{stipendTotal.toLocaleString('en-IN')}</div>
+              <div className="text-xs text-on-surface-variant truncate font-medium">Total Stipend Budget</div>
             </div>
           </div>
         </div>

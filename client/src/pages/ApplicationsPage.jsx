@@ -173,7 +173,7 @@ export default function ApplicationsPage({
                   </div>
                   <div className="mt-1">
                     <div className="text-sm font-bold text-on-surface">₹25,000</div>
-                    <span className="text-xs text-on-surface-variant font-medium">₹12,000 escrow released</span>
+                    <span className="text-xs text-on-surface-variant font-medium">₹12,000 released</span>
                   </div>
                 </div>
               </div>
@@ -183,16 +183,16 @@ export default function ApplicationsPage({
                 <div className="flex items-center gap-2 min-w-0">
                   <img 
                     className="w-7 h-7 rounded-full object-cover" 
-                    alt="Dr. Aris Thorne"
+                    alt="Dr. Rohan Mehta"
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFhVV8Cq-dkl96SVP6-Y_nTWaqnzqk_PHQiLAIRMGHR_EBhqNdC3ikvIAzKygcVS7QqT8FHAoGuTs7G9WgGNPxwUtX2nUpU3kBRE06iC5CTLkjxhpl78Z5ZqsUc51nEKSuQvAE5jOshX8HrxvbmpPwPVREln2SZkAajrtrYOqU6Qzmb88utnuubtryxKzyFqxZ5e4vow5f0h-caA_VhH9ovDiDW5lA0biJbgjUY1k"
                   />
                   <div className="flex flex-col min-w-0">
-                    <span className="text-xs text-on-surface font-semibold truncate">Dr. Aris Thorne • Lead Staff Mentor</span>
+                    <span className="text-xs text-on-surface font-semibold truncate">Dr. Rohan Mehta • Lead Staff Mentor</span>
                     <span className="text-[11px] text-on-surface-variant truncate">Next sync: Today, 4:30 PM IST</span>
                   </div>
                 </div>
                 <button 
-                  onClick={() => showToast('Opening direct mentorship chat with Dr. Aris Thorne.', 'info')}
+                  onClick={() => showToast('Opening direct mentorship chat with Dr. Rohan Mehta.', 'info')}
                   className="material-symbols-outlined text-primary text-[18px] hover:scale-110 transition-transform"
                 >
                   chat_bubble_outline

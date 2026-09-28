@@ -156,7 +156,7 @@ export default function StudentDashboardPage({
             </div>
             <div className="mt-2">
               <div className="text-xl font-extrabold text-on-surface tracking-tight">₹42,000</div>
-              <span className="font-mono text-[10px] font-bold text-[#244b16] bg-[#B8D8A2]/30 border border-[#B8D8A2]/50 px-1.5 py-0.5 rounded mt-1 inline-block">+100% Guaranteed</span>
+              <span className="font-mono text-[10px] font-bold text-[#244b16] bg-[#B8D8A2]/30 border border-[#B8D8A2]/50 px-1.5 py-0.5 rounded mt-1 inline-block">On-time payouts</span>
             </div>
           </div>
 
@@ -365,7 +365,7 @@ export default function StudentDashboardPage({
               <div className="p-2.5 rounded-lg bg-surface-container-low flex items-center gap-2 border border-outline-variant/15">
                 <span className="material-symbols-outlined text-amber-500 text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>emoji_events</span>
                 <div className="min-w-0">
-                  <div className="text-xs text-on-surface font-bold truncate">Devpost Winner</div>
+                  <div className="text-xs text-on-surface font-bold truncate">Hackathon Winner</div>
                   <div className="text-[11px] text-on-surface-variant font-medium">2x Hackathon 1st</div>
                 </div>
               </div>

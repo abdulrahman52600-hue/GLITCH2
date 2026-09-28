@@ -62,7 +62,7 @@ export default function HomePage({
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
           </span>
-          <span>418 CS &amp; Design students actively matching now</span>
+          <span>Pilot demo: skill-matched sprints for CS &amp; Design students</span>
         </div>
 
       </div>
@@ -179,7 +179,7 @@ export default function HomePage({
                 <p className="text-[11px] text-on-surface-variant">Direct university platform integration</p>
               </div>
             </div>
-            <span className="font-mono text-xs font-bold text-primary bg-primary-fixed px-2.5 py-0.5 rounded-full shrink-0">Active 2025</span>
+            <span className="font-mono text-xs font-bold text-primary bg-primary-fixed px-2.5 py-0.5 rounded-full shrink-0">Active 2026</span>
           </div>
         </div>
       </div>
@@ -267,9 +267,9 @@ export default function HomePage({
             <div>
               <div className="flex items-baseline gap-1">
                 <span className="text-xl sm:text-2xl font-black text-on-surface tracking-tight">94%</span>
-                <span className="font-mono text-[10px] text-primary font-bold">Verified</span>
+                <span className="font-mono text-[10px] text-primary font-bold">Demo</span>
               </div>
-              <p className="text-xs text-on-surface-variant mt-0.5">Skill match accuracy</p>
+              <p className="text-xs text-on-surface-variant mt-0.5">Avg match score (demo data)</p>
             </div>
           </div>
 
@@ -288,7 +288,7 @@ export default function HomePage({
               <span className="material-symbols-outlined text-lg">handshake</span>
             </div>
             <div>
-              <span className="text-xl sm:text-2xl font-black text-on-surface tracking-tight">85+</span>
+              <span className="text-xl sm:text-2xl font-black text-on-surface tracking-tight">4</span>
               <p className="text-xs text-on-surface-variant mt-0.5">Fintech, SaaS &amp; design partners</p>
             </div>
           </div>
@@ -296,13 +296,13 @@ export default function HomePage({
 
         {/* Company Partner Badges Ticker */}
         <div className="mt-4 p-3 rounded-xl bg-surface-container-low flex items-center justify-around gap-2 text-on-surface-variant font-mono font-bold text-xs tracking-wider">
-          <span>STRIPE</span>
+          <span>FINFLOW</span>
           <span className="text-outline-variant">•</span>
-          <span>DATADOG</span>
+          <span>HEALTHBRIDGE</span>
           <span className="text-outline-variant">•</span>
-          <span>FIGMA</span>
+          <span>CLOUDSCALE</span>
           <span className="text-outline-variant">•</span>
-          <span>NOTION</span>
+          <span>NEXUS ROBOTICS</span>
         </div>
       </div>
 
@@ -322,7 +322,7 @@ export default function HomePage({
             <div>
               <h4 className="font-bold text-sm text-on-surface">Connect GitHub &amp; Stack</h4>
               <p className="text-xs text-on-surface-variant mt-1">
-                Automatic skill extraction pulls validated commits, pull requests, and framework proficiencies in 30 seconds.
+                Link your GitHub repos and portfolio to your profile. Automated skill extraction from commits is on our roadmap.
               </p>
               <div className="mt-2 flex flex-wrap gap-1.5 font-mono text-[11px]">
                 <span className="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant">git clone</span>
@@ -340,7 +340,7 @@ export default function HomePage({
               <div className="flex items-center justify-between">
                 <h4 className="font-bold text-sm text-on-surface">Instant Match Score</h4>
                 <span className="px-2 py-0.5 rounded-full bg-surface-container-high text-secondary font-mono text-xs font-bold">
-                  96% Accuracy
+                  96% Match
                 </span>
               </div>
               <p className="text-xs text-on-surface-variant mt-1">
@@ -359,11 +359,11 @@ export default function HomePage({
             <div>
               <h4 className="font-bold text-sm text-on-surface">Deliver &amp; Dual Review</h4>
               <p className="text-xs text-on-surface-variant mt-1">
-                Complete the milestone, transfer branch PR, receive guaranteed escrow payout, and unlock faculty-shareable endorsements.
+                Complete the milestone, transfer branch PR, receive your milestone-based stipend payout, and unlock faculty-shareable endorsements.
               </p>
               <div className="mt-2 flex items-center gap-1.5 text-xs text-on-surface-variant">
                 <span className="material-symbols-outlined text-primary text-sm">lock</span>
-                <span className="font-medium">Escrow Protected Payouts</span>
+                <span className="font-medium">Milestone-Based Payouts (simulated in demo)</span>
               </div>
             </div>
           </div>
@@ -377,7 +377,7 @@ export default function HomePage({
             <span className="material-symbols-outlined text-primary text-sm">code</span>
             <span className="text-xs font-bold text-on-surface uppercase tracking-wider">Trending Tech Stacks</span>
           </div>
-          <span className="text-xs text-on-surface-variant">142 Open Sprints</span>
+          <span className="text-xs text-on-surface-variant">4 Open Sprints (demo)</span>
         </div>
 
         <div className="flex overflow-x-auto gap-2 pb-2 no-scrollbar font-mono text-xs">
@@ -437,7 +437,7 @@ export default function HomePage({
           <span className="material-symbols-outlined text-3xl mb-2">rocket_launch</span>
           <h3 className="text-xl sm:text-2xl font-bold text-on-primary">Ready to Start Your Sprint?</h3>
           <p className="text-xs sm:text-sm text-on-primary-container mt-1 max-w-sm">
-            Connect your GitHub in under 60 seconds and view your match score immediately.
+            Add your skills and GitHub link, then view your match score immediately.
           </p>
 
           <div className="w-full max-w-md mt-5 flex flex-col gap-2">
@@ -452,7 +452,7 @@ export default function HomePage({
               onClick={() => setActivePage('explore')}
               className="w-full py-2.5 px-4 rounded-xl text-on-primary font-semibold text-xs sm:text-sm hover:bg-on-primary/10 transition-colors"
             >
-              Browse 80+ Open Projects Without Account
+              Browse Open Projects Without Account
             </button>
           </div>
 
