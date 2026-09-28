@@ -96,7 +96,7 @@ export default function CompanyDashboardPage({
               <div className="flex items-center gap-2 mt-0.5 text-on-surface-variant flex-wrap text-xs">
                 <span className="flex items-center gap-0.5">
                   <span className="material-symbols-outlined text-[16px] text-tertiary">location_on</span>
-                  San Francisco, CA
+                  Hyderabad, Telangana
                 </span>
                 <span className="text-outline-variant">•</span>
                 <span className="px-2 py-0.5 rounded-full bg-surface-container-high font-mono text-[11px] text-primary font-bold">
@@ -241,7 +241,7 @@ export default function CompanyDashboardPage({
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <h3 className="text-sm font-bold text-on-surface">{app.studentName}</h3>
                             <span className="font-mono text-[10px] px-1.5 py-0.2 rounded bg-surface-container font-semibold text-on-surface-variant">
-                              {app.studentUniversity || "UC Berkeley"}
+                              {app.studentUniversity || "IIIT Hyderabad"}
                             </span>
                           </div>
                           <p className="text-xs text-on-surface-variant mt-0.5">Applied to: <strong className="text-on-surface font-semibold">{app.projectTitle}</strong></p>

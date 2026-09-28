@@ -119,7 +119,7 @@ export default function ApplyModal({ project, isOpen, onClose, onSuccess }) {
             </div>
             <div className="flex justify-between items-center">
               <span>University:</span>
-              <span>{user?.university || 'Stanford University'}</span>
+              <span>{user?.university || 'IIIT Hyderabad'}</span>
             </div>
             <div className="flex justify-between items-center">
               <span>Attached Resume:</span>

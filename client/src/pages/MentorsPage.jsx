@@ -12,7 +12,7 @@ export default function MentorsPage({
 
   const [activeFilter, setActiveFilter] = useState('all');
   const [selectedMentor, setSelectedMentor] = useState(null);
-  const [bookingSlot, setBookingSlot] = useState('Today, 4:30 PM - 5:00 PM EST');
+  const [bookingSlot, setBookingSlot] = useState('Today, 4:30 PM - 5:00 PM IST');
   const [sessionTopic, setSessionTopic] = useState('Architecture & WebSockets Review');
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -152,8 +152,8 @@ export default function MentorsPage({
           
           {filteredMentors.map((mentor, mIdx) => {
             const isAyaan = mentor.name.includes('Ayaan') || mentor.name.includes('David');
-            const isElena = mentor.name.includes('Elena');
-            const isSarah = mentor.name.includes('Sarah');
+            const isElena = mentor.name.includes('Anjali');
+            const isSarah = mentor.name.includes('Priya');
 
             return (
               <article 
@@ -330,9 +330,9 @@ export default function MentorsPage({
                   onChange={(e) => setBookingSlot(e.target.value)}
                   className="w-full text-xs font-semibold rounded-xl border border-outline-variant/40 p-2.5 bg-surface-container-low text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40"
                 >
-                  <option value="Today, 4:30 PM - 5:00 PM EST">Today, 4:30 PM - 5:00 PM EST (Instant)</option>
-                  <option value="Tomorrow, 11:00 AM - 11:30 AM EST">Tomorrow, 11:00 AM - 11:30 AM EST</option>
-                  <option value="Friday, 2:00 PM - 2:30 PM EST">Friday, 2:00 PM - 2:30 PM EST</option>
+                  <option value="Today, 4:30 PM - 5:00 PM IST">Today, 4:30 PM - 5:00 PM IST (Instant)</option>
+                  <option value="Tomorrow, 11:00 AM - 11:30 AM IST">Tomorrow, 11:00 AM - 11:30 AM IST</option>
+                  <option value="Friday, 2:00 PM - 2:30 PM IST">Friday, 2:00 PM - 2:30 PM IST</option>
                 </select>
               </div>
 

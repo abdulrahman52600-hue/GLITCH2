@@ -186,7 +186,7 @@ export default function PostProjectModal({ isOpen, onClose, onSuccess }) {
                 type="text"
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                placeholder="e.g. Remote or Hybrid (San Francisco, CA)"
+                placeholder="e.g. Remote or Hybrid (Hyderabad, Telangana)"
                 className="w-full text-sm rounded-xl border border-slate-200 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
               />
             </div>

@@ -91,7 +91,7 @@ export default function ExploreProjectsPage({
                   <span className="px-1.5 py-0.5 rounded-full bg-primary text-on-primary font-mono text-[10px] font-bold">Active Hunter</span>
                 </div>
                 <p className="text-xs text-on-surface-variant truncate font-medium">
-                  {user?.university ? `${user.university} • ${user.major || 'CS'} '${user.gradYear || '25'}` : "Cal Berkeley • CS '25"}
+                  {user?.university ? `${user.university} • ${user.major || 'CS'} '${user.gradYear || '27'}` : "IIIT Hyderabad • CS '27"}
                 </p>
               </div>
             </div>
@@ -284,7 +284,7 @@ export default function ExploreProjectsPage({
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="text-sm font-bold text-on-surface truncate">{proj.companyName}</span>
                           <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-primary-fixed text-on-primary-fixed font-mono text-[10px] tracking-tight font-semibold">
-                            {proj.badge || (idx === 0 ? 'YC W24' : idx === 1 ? 'Series A' : 'Autonomous Fleet')}
+                            {proj.badge || (idx === 0 ? 'DPIIT Recognised' : idx === 1 ? 'Series A' : 'Autonomous Fleet')}
                           </span>
                         </div>
                         <span className="text-xs text-on-surface-variant truncate font-medium">{proj.industry || 'B2B Software'}</span>

@@ -100,7 +100,7 @@ export default function RequestMentorshipModal({ mentor, isOpen, onClose, onSucc
               required
               value={preferredTime}
               onChange={(e) => setPreferredTime(e.target.value)}
-              placeholder="e.g. Wednesday Oct 14th at 5:00 PM EST"
+              placeholder="e.g. Wednesday Oct 14th at 5:00 PM IST"
               className="w-full text-sm rounded-xl border border-slate-200 px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             />
             <p className="text-[11px] text-slate-400 mt-1">

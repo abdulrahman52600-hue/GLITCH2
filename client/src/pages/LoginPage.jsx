@@ -130,7 +130,7 @@ export default function LoginPage({ setActivePage }) {
                   <h3 className="font-bold text-slate-900 group-hover:text-primary transition-colors">
                     Zubair Khan
                   </h3>
-                  <p className="text-xs text-slate-500">UC Berkeley • CS '25</p>
+                  <p className="text-xs text-slate-500">IIIT Hyderabad • CS '27</p>
                 </div>
               </div>
 
@@ -327,7 +327,7 @@ export default function LoginPage({ setActivePage }) {
                     type="text"
                     value={formData.university}
                     onChange={(e) => setFormData({ ...formData, university: e.target.value })}
-                    placeholder="e.g. MIT, Stanford, Berkeley"
+                    placeholder="e.g. IIT Bombay, NIT Trichy, IIIT Hyderabad"
                     className="w-full text-sm rounded-xl border border-slate-200 px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   />
                 </div>

@@ -112,7 +112,7 @@ export default function StudentDashboardPage({
                 </button>
               </div>
               <p className="text-xs text-on-surface-variant truncate mt-0.5 font-medium">
-                {user?.university ? `${user.university} • B.S. ${user.major || 'Computer Science'} '${user.gradYear || '25'}` : "UC Berkeley • B.S. Computer Science '25"}
+                {user?.university ? `${user.university} • B.Tech ${user.major || 'Computer Science'} '${user.gradYear || '27'}` : "IIIT Hyderabad • B.Tech Computer Science '27"}
               </p>
 
               {/* Badges Row */}
@@ -138,7 +138,7 @@ export default function StudentDashboardPage({
           <div className="grid grid-cols-2 gap-2 mt-4 pt-1">
             <div className="flex items-center gap-2 p-2 rounded-lg bg-surface-container-low border border-outline-variant/15">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-xs font-semibold text-on-surface">Available for Fall '24</span>
+              <span className="text-xs font-semibold text-on-surface">Available from Jan 2027</span>
             </div>
             <div className="flex items-center gap-2 p-2 rounded-lg bg-surface-container-low border border-outline-variant/15">
               <span className="material-symbols-outlined text-[16px] text-primary">schedule</span>
@@ -210,7 +210,7 @@ export default function StudentDashboardPage({
           <div className="p-4 rounded-xl bg-surface-container-low shadow-xs border border-outline-variant/15">
             <div className="flex items-start justify-between">
               <div>
-                <span className="font-mono text-xs font-bold text-primary uppercase tracking-wider">CloudScale Inc.</span>
+                <span className="font-mono text-xs font-bold text-primary uppercase tracking-wider">CloudScale Technologies</span>
                 <h3 className="text-base font-bold text-on-surface mt-0.5">Auth0 & RBAC Module</h3>
               </div>
               <span className="text-base font-bold text-primary">₹25,000</span>

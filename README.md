@@ -24,12 +24,12 @@ A modern, responsive full-stack web application designed to connect university s
 
 ## 👥 Three Roles & Workflows
 
-### 1. 🎓 Student Persona (`Zubair Khan`, UC Berkeley CS '25)
+### 1. 🎓 Student Persona (`Zubair Khan`, IIIT Hyderabad CS '27)
 - **Profile & Skill Inventory**: Manage languages, frameworks, databases, availability (`15-20 hrs/week Part-Time`), resume upload simulation, and domain interests.
 - **Recommended Projects**: Automatically ranks available internships and projects by highest match percentage.
 - **Project Applications**: Apply with personalized cover notes and review your live skill match preview before submitting.
 - **Application Tracker**: Multi-stage progress stepper (`Submitted` $\to$ `Under Review` $\to$ `Shortlisted` $\to$ `Accepted` or `Rejected`) with recruiter feedback notes.
-- **Industry Mentorship**: Browse mentors from Stripe, Figma, and UC Berkeley, and schedule 1-on-1 career coaching sessions.
+- **Industry Mentorship**: Browse mentors from fintech, design, and IIT Hyderabad, and schedule 1-on-1 career coaching sessions.
 
 ### 2. 🏢 Company Persona (`FinFlow Technologies` / `Ayaan Siddiqui`)
 - **Company Profile**: Industry branding, location, verified badge, and company size.

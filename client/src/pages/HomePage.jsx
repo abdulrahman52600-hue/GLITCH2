@@ -145,7 +145,7 @@ export default function HomePage({
 
             <div className="mt-4 p-3 rounded-xl bg-surface-container-lowest flex items-center justify-between text-xs">
               <span className="text-on-surface-variant">Active sponsor pipeline:</span>
-              <span className="font-bold text-secondary">14 Stanford &amp; Berkeley finalists</span>
+              <span className="font-bold text-secondary">14 IIT &amp; NIT finalists</span>
             </div>
           </div>
 
@@ -175,7 +175,7 @@ export default function HomePage({
             <div className="flex items-center gap-2.5 min-w-0">
               <span className="material-symbols-outlined text-secondary text-xl">school</span>
               <div className="truncate">
-                <p className="font-semibold text-xs sm:text-sm text-on-surface truncate">Stanford, CMU, Waterloo &amp; MIT</p>
+                <p className="font-semibold text-xs sm:text-sm text-on-surface truncate">IIT Bombay, IIT Madras, NIT Trichy &amp; BITS Pilani</p>
                 <p className="text-[11px] text-on-surface-variant">Direct university platform integration</p>
               </div>
             </div>
@@ -289,7 +289,7 @@ export default function HomePage({
             </div>
             <div>
               <span className="text-xl sm:text-2xl font-black text-on-surface tracking-tight">85+</span>
-              <p className="text-xs text-on-surface-variant mt-0.5">Stripe, Datadog &amp; Figma partners</p>
+              <p className="text-xs text-on-surface-variant mt-0.5">Fintech, SaaS &amp; design partners</p>
             </div>
           </div>
         </div>
@@ -424,7 +424,7 @@ export default function HomePage({
                 "Shipped an enterprise-grade auth module and webhook terminal in 10 days. Got paid ₹28,000 and a full-time return offer."
               </p>
               <p className="text-xs text-on-surface-variant font-semibold mt-1">
-                Zubair Khan • Senior at UC Berkeley
+                Zubair Khan • Pre-final year at IIIT Hyderabad
               </p>
             </div>
           </div>

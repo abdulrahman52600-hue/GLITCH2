@@ -114,7 +114,7 @@ export default function AdminDashboardPage({ projects = [], onRefreshData }) {
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
           <div className="text-xs font-bold text-slate-400 uppercase">Students</div>
           <div className="text-2xl sm:text-3xl font-black text-indigo-600 mt-1">{stats.totalStudents}</div>
-          <div className="text-[11px] text-slate-500 mt-0.5">Stanford, Berkeley, GT</div>
+          <div className="text-[11px] text-slate-500 mt-0.5">IIIT-H, NIT-W, IITH</div>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">

@@ -138,7 +138,7 @@ export default function ProjectDetailsPage({
                   </span>
                 </div>
                 <p className="text-xs text-on-surface-variant mt-0.5">
-                  {project.industry || 'FinTech'} • {project.stage || 'Series B (₹350 Cr)'} • {project.location || 'San Francisco, CA'}
+                  {project.industry || 'FinTech'} • {project.stage || 'Series B (₹350 Cr)'} • {project.location || 'Hyderabad, Telangana'}
                 </p>
               </div>
             </div>
@@ -327,7 +327,7 @@ export default function ProjectDetailsPage({
               </div>
               <h4 className="text-sm font-bold text-on-surface">Milestone 1: UI Scaffold & Mock Stream</h4>
               <p className="text-xs text-on-surface-variant leading-relaxed">
-                Implement reactive dashboard layout using Tailwind CSS. Setup simulated EventEmitter that dispatches incoming mock webhook payloads (Stripe, Twilio, Sendgrid schemas) at 2 Hz.
+                Implement reactive dashboard layout using Tailwind CSS. Setup simulated EventEmitter that dispatches incoming mock webhook payloads (UPI, Twilio, Sendgrid schemas) at 2 Hz.
               </p>
               <div className="flex items-center gap-1.5 flex-wrap pt-1">
                 <span className="px-2 py-0.5 rounded-full bg-surface-container font-mono text-[11px] text-on-surface-variant">React 18</span>
@@ -392,7 +392,7 @@ export default function ProjectDetailsPage({
                 <span className="material-symbols-outlined text-primary text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
               </div>
               <p className="text-xs text-on-surface-variant">{project.leadMentor?.role || 'Lead Infrastructure Architect'} • {project.companyName}</p>
-              <p className="text-xs text-primary font-medium mt-0.5">{project.leadMentor?.tagline || 'Ex-Stripe Core Infra • 14 micro-interns mentored'}</p>
+              <p className="text-xs text-primary font-medium mt-0.5">{project.leadMentor?.tagline || 'Ex-Fintech Core Infra • 14 micro-interns mentored'}</p>
             </div>
           </div>
           <div className="p-3 rounded-lg bg-surface-container-low text-xs text-on-surface-variant italic leading-relaxed">

@@ -114,13 +114,13 @@ export default function ApplicationsPage({
                   <div className="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center flex-shrink-0 overflow-hidden shadow-sm">
                     <img 
                       className="w-full h-full object-cover" 
-                      alt="CloudScale Inc"
+                      alt="CloudScale Technologies"
                       src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAuDsp4Yw91dFQxK7qw7E4EZ8P-p1Np_Pqr8Ul-t8-lU4Ad-D6KCdZYQU0eSD8MYMahWlsntLLCCSj2nsNiyW5PlwdBvKJsnsM8pzse8KpC3XNuan9Bqidsr-NFTuMx5SZtMrzhZVEdB0FSe4fTqNFJ5WiLKJXch-TOG1DmJfPDhuPYqA10hQABkqUTiROVRzPBXXq-KIChPzZ8-z2F-wSNoCWtDTrNReXZ-emqkc"
                     />
                   </div>
                   <div className="flex flex-col min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-base font-bold text-on-surface truncate">CloudScale Inc.</span>
+                      <span className="text-base font-bold text-on-surface truncate">CloudScale Technologies</span>
                       <span className="w-4 h-4 rounded-full bg-primary text-on-primary flex items-center justify-center text-[10px]">
                         <span className="material-symbols-outlined text-[12px]">verified</span>
                       </span>
@@ -188,7 +188,7 @@ export default function ApplicationsPage({
                   />
                   <div className="flex flex-col min-w-0">
                     <span className="text-xs text-on-surface font-semibold truncate">Dr. Aris Thorne • Lead Staff Mentor</span>
-                    <span className="text-[11px] text-on-surface-variant truncate">Next sync: Today, 4:30 PM EST</span>
+                    <span className="text-[11px] text-on-surface-variant truncate">Next sync: Today, 4:30 PM IST</span>
                   </div>
                 </div>
                 <button 

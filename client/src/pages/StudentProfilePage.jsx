@@ -20,11 +20,11 @@ export default function StudentProfilePage() {
 
   const [formData, setFormData] = useState({
     name: 'Zubair Khan',
-    email: 'zubair.khan@berkeley.edu',
-    university: 'UC Berkeley',
-    degree: 'B.S. in Computer Science',
+    email: 'zubair.khan@iiit.ac.in',
+    university: 'IIIT Hyderabad',
+    degree: 'B.Tech in Computer Science',
     gradYear: '2025',
-    gpa: '3.92 / 4.0',
+    gpa: '9.2 / 10 CGPA',
     bio: 'Full-stack builder passionate about developer tooling, API design, and distributed systems.',
     availability: '15-20 hrs/week Part-Time',
     github: 'github.com/zubairkhan-dev',
@@ -42,11 +42,11 @@ export default function StudentProfilePage() {
     if (user) {
       setFormData({
         name: user.name || 'Zubair Khan',
-        email: user.email || 'zubair.khan@berkeley.edu',
-        university: user.university || 'UC Berkeley',
-        degree: user.degree || 'B.S. in Computer Science',
+        email: user.email || 'zubair.khan@iiit.ac.in',
+        university: user.university || 'IIIT Hyderabad',
+        degree: user.degree || 'B.Tech in Computer Science',
         gradYear: user.gradYear || '2025',
-        gpa: user.gpa || '3.92 / 4.0',
+        gpa: user.gpa || '9.2 / 10 CGPA',
         bio: user.bio || 'Full-stack builder passionate about developer tooling, API design, and distributed systems.',
         availability: user.availability || '15-20 hrs/week Part-Time',
         github: user.github || 'github.com/zubairkhan-dev',
