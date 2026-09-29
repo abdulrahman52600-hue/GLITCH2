@@ -147,6 +147,21 @@ export default function StudentDashboardPage({
           </div>
         </div>
 
+        {/* NEW: Evidence-first capability strip */}
+        <section className="rounded-xl bg-surface-container-lowest border border-outline-variant/20 p-4 sm:p-5 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2"><span className="material-symbols-outlined text-primary text-[20px]">verified</span><h2 className="text-sm font-bold">Your capability is now evidence-backed</h2></div>
+              <p className="text-xs text-on-surface-variant mt-1">Verified skills drive matching; project history strengthens your work reputation.</p>
+            </div>
+            <button onClick={() => setActivePage('skill-passport')} className="px-3.5 py-2 rounded-lg bg-primary text-on-primary text-xs font-bold shrink-0">Open Skill Passport →</button>
+          </div>
+          <div className="flex flex-wrap gap-2 mt-4">
+            {(user?.verifiedSkills || []).map(v => <span key={v.skill} className="px-2.5 py-1.5 rounded-lg bg-[#B8D8A2]/25 border border-[#B8D8A2]/50 text-[10px] font-bold text-[#376225]">✓ {v.skill} · {v.score}% · {v.level}</span>)}
+            {(user?.skills || []).filter(s => !(user?.verifiedSkills || []).some(v => v.skill.toLowerCase() === s.toLowerCase())).slice(0,3).map(s => <span key={s} className="px-2.5 py-1.5 rounded-lg bg-surface-container text-[10px] font-semibold text-on-surface-variant">○ {s} · self-declared</span>)}
+          </div>
+        </section>
+
         {/* Performance & Career Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           <div className="bg-surface-container-lowest rounded-xl p-4 shadow-sm border border-outline-variant/20 flex flex-col justify-between">

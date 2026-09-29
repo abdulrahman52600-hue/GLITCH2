@@ -1,147 +1,71 @@
 const API_BASE = '/api';
 
-export const api = {
-  // Auth & Users
-  getDemoUsers: async () => {
-    const res = await fetch(`${API_BASE}/auth/demo-users`);
-    return res.json();
-  },
-  login: async (credentials) => {
-    const res = await fetch(`${API_BASE}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(credentials)
-    });
-    return res.json();
-  },
-  register: async (userData) => {
-    const res = await fetch(`${API_BASE}/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userData)
-    });
-    return res.json();
-  },
-  getUser: async (id) => {
-    const res = await fetch(`${API_BASE}/auth/user/${id}`);
-    return res.json();
-  },
-  updateProfile: async (id, data) => {
-    const res = await fetch(`${API_BASE}/auth/profile/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    return res.json();
-  },
+async function request(path, options = {}) {
+  const token = localStorage.getItem('bridge_access_token');
+  const headers = { ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...(options.headers || {}) };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  let data = {};
+  try { data = await res.json(); } catch { data = {}; }
+  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+  return data;
+}
 
-  // Projects
+export const api = {
+  getDemoUsers: () => request('/auth/demo-users'),
+  getAuthProviders: () => request('/auth/providers'),
+  exchangeOAuthCode: (code) => request('/auth/oauth/exchange', { method: 'POST', body: JSON.stringify({ code }) }),
+  sendPhoneCode: (phone) => request('/auth/phone/start', { method: 'POST', body: JSON.stringify({ phone }) }),
+  verifyPhoneCode: (phone, code, role, name) => request('/auth/phone/verify', { method: 'POST', body: JSON.stringify({ phone, code, role, name }) }),
+  login: (credentials) => request('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
+  logout: () => request('/auth/logout', { method: 'POST' }),
+  register: (userData) => request('/auth/register', { method: 'POST', body: JSON.stringify(userData) }),
+  getUser: (id) => request(`/auth/user/${id}`),
+  updateProfile: (id, data) => request(`/auth/profile/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  getNotifications: () => request('/notifications'),
+  markNotificationRead: (id) => request(`/notifications/${encodeURIComponent(id)}/read`, { method: 'PATCH' }),
+  markAllNotificationsRead: () => request('/notifications/read-all', { method: 'PATCH' }),
+
   getProjects: async (params = {}) => {
     const query = new URLSearchParams();
     Object.entries(params).forEach(([key, val]) => {
-      if (val !== undefined && val !== null && val !== '') {
-        query.append(key, val);
-      }
+      if (val !== undefined && val !== null && val !== '') query.append(key, val);
     });
-    const res = await fetch(`${API_BASE}/projects?${query.toString()}`);
-    return res.json();
+    return request(`/projects?${query.toString()}`);
   },
-  getProjectById: async (id, studentId) => {
-    const query = studentId ? `?studentId=${studentId}` : '';
-    const res = await fetch(`${API_BASE}/projects/${id}${query}`);
-    return res.json();
-  },
-  createProject: async (projectData) => {
-    const res = await fetch(`${API_BASE}/projects`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(projectData)
-    });
-    return res.json();
-  },
-  updateProject: async (id, data) => {
-    const res = await fetch(`${API_BASE}/projects/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    return res.json();
-  },
-  deleteProject: async (id) => {
-    const res = await fetch(`${API_BASE}/projects/${id}`, {
-      method: 'DELETE'
-    });
-    return res.json();
-  },
+  getProjectById: (id) => request(`/projects/${id}`),
+  createProject: (projectData) => request('/projects', { method: 'POST', body: JSON.stringify(projectData) }),
+  updateProject: (id, data) => request(`/projects/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteProject: (id) => request(`/projects/${id}`, { method: 'DELETE' }),
 
-  // Applications
-  getApplications: async (params = {}) => {
+  getApplications: (params = {}) => {
     const query = new URLSearchParams();
     Object.entries(params).forEach(([key, val]) => {
-      if (val !== undefined && val !== null && val !== '') {
-        query.append(key, val);
-      }
+      if (val !== undefined && val !== null && val !== '') query.append(key, val);
     });
-    const res = await fetch(`${API_BASE}/applications?${query.toString()}`);
-    return res.json();
+    return request(`/applications?${query.toString()}`);
   },
-  createApplication: async (data) => {
-    const res = await fetch(`${API_BASE}/applications`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    return res.json();
-  },
-  updateApplicationStatus: async (id, status, feedback = '') => {
-    const res = await fetch(`${API_BASE}/applications/${id}/status`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status, feedback })
-    });
-    return res.json();
-  },
+  createApplication: (data) => request('/applications', { method: 'POST', body: JSON.stringify(data) }),
+  updateApplicationStatus: (id, status, feedback = '') => request(`/applications/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status, feedback }) }),
+  completeApplication: (id, outcome) => request(`/applications/${id}/complete`, { method: 'POST', body: JSON.stringify(outcome) }),
 
-  // Mentors
-  getMentors: async (params = {}) => {
+  getMentors: (params = {}) => {
     const query = new URLSearchParams();
     Object.entries(params).forEach(([key, val]) => {
-      if (val !== undefined && val !== null && val !== '') {
-        query.append(key, val);
-      }
+      if (val !== undefined && val !== null && val !== '') query.append(key, val);
     });
-    const res = await fetch(`${API_BASE}/mentors?${query.toString()}`);
-    return res.json();
+    return request(`/mentors?${query.toString()}`);
   },
-  requestMentorship: async (data) => {
-    const res = await fetch(`${API_BASE}/mentors/request`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    return res.json();
-  },
-  getMentorshipRequests: async (studentId) => {
-    const res = await fetch(`${API_BASE}/mentors/requests/${studentId}`);
-    return res.json();
-  },
+  requestMentorship: (data) => request('/mentors/request', { method: 'POST', body: JSON.stringify(data) }),
+  getMentorshipRequests: (studentId) => request(`/mentors/requests/${studentId}`),
 
-  // Admin
-  getAdminStats: async () => {
-    const res = await fetch(`${API_BASE}/admin/stats`);
-    return res.json();
-  },
-  getAdminUsers: async (role) => {
-    const query = role ? `?role=${role}` : '';
-    const res = await fetch(`${API_BASE}/admin/users${query}`);
-    return res.json();
-  },
-  setProjectStatus: async (id, status) => {
-    const res = await fetch(`${API_BASE}/admin/projects/${id}/status`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status })
-    });
-    return res.json();
-  }
+  getAdminStats: () => request('/admin/stats'),
+  getAdminUsers: (role) => request(`/admin/users${role ? `?role=${encodeURIComponent(role)}` : ''}`),
+  setProjectStatus: (id, status) => request(`/admin/projects/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+
+  getAssessmentCatalog: () => request('/assessments/catalog'),
+  startAssessment: (skill, level = 'Intermediate', cameraConsent = false) => request('/assessments/start', { method: 'POST', body: JSON.stringify({ skill, level, cameraConsent }) }),
+  getSecurityControls: () => request('/assessments/security-controls'),
+  assessmentFocusEvent: (attemptId, action, eventId, keepalive = false) => request(`/assessments/${attemptId}/focus-event`, { method: 'POST', body: JSON.stringify({ action, eventId }), keepalive }),
+  submitAssessment: (attemptId, answers) => request(`/assessments/${attemptId}/submit`, { method: 'POST', body: JSON.stringify({ answers }) })
 };

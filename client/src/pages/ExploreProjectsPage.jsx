@@ -113,7 +113,7 @@ export default function ExploreProjectsPage({
               <span className="font-mono text-[11px] font-bold text-on-primary-fixed">5/5 Verified</span>
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {(user?.skills && user.skills.length > 0 ? user.skills.slice(0, 5) : ['React', 'TypeScript', 'Next.js', 'Tailwind', 'Python']).map(skill => (
+              {(user?.verifiedSkills && user.verifiedSkills.length > 0 ? user.verifiedSkills.map(v => typeof v === 'string' ? v : v.skill).slice(0, 5) : ['React', 'TypeScript', 'Next.js', 'Tailwind', 'Python']).map(skill => (
                 <span key={skill} className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container-lowest text-on-surface font-mono text-xs shadow-sm font-medium">
                   <span className="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
                   {skill}

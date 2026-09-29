@@ -1,5 +1,6 @@
 import express from 'express';
 import { db } from '../db/database.js';
+import { authenticate, requireRole } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -48,9 +49,10 @@ router.get('/:id', async (req, res) => {
 });
 
 // Request mentorship session
-router.post('/request', async (req, res) => {
+router.post('/request', authenticate, requireRole('student'), async (req, res) => {
   try {
-    const { mentorId, studentId, topic, message, preferredTime } = req.body;
+    const { mentorId, topic, message, preferredTime } = req.body;
+    const studentId = req.user._id;
     if (!mentorId || !studentId || !topic || !message) {
       return res.status(400).json({ error: 'Mentor ID, student ID, topic and message are required.' });
     }
@@ -82,8 +84,9 @@ router.post('/request', async (req, res) => {
 });
 
 // Get mentorship requests for a student
-router.get('/requests/:studentId', async (req, res) => {
+router.get('/requests/:studentId', authenticate, requireRole('student'), async (req, res) => {
   try {
+    if (req.params.studentId !== req.user._id) return res.status(403).json({ error: 'You can only view your own mentorship requests.' });
     const requests = await db.getMentorshipRequests(req.params.studentId);
     res.json({ success: true, requests });
   } catch (err) {

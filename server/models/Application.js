@@ -20,10 +20,19 @@ const applicationSchema = new mongoose.Schema({
   resumeUrl: { type: String },
   status: { 
     type: String, 
-    enum: ['Pending', 'Under Review', 'Shortlisted', 'Accepted', 'Rejected'], 
+    enum: ['Pending', 'Under Review', 'Shortlisted', 'Accepted', 'In Progress', 'Completed', 'Rejected'], 
     default: 'Pending' 
   },
   feedback: { type: String },
+  workReview: {
+    summary: { type: String },
+    rating: { type: Number, min: 1, max: 5 },
+    skillsDemonstrated: [{ type: String }],
+    evidenceUrl: { type: String },
+    reviewerId: { type: String },
+    reviewerName: { type: String },
+    reviewedAt: { type: Date }
+  },
   appliedAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });

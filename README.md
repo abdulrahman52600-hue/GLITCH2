@@ -66,12 +66,15 @@ A modern, responsive full-stack web application designed to connect university s
 
 - **Frontend**: React 18/19, Tailwind CSS, Lucide React Icons, Vite.
 - **Backend**: Node.js, Express, RESTful APIs, CORS.
-- **Database Layer**: MongoDB / Mongoose ready, with an intelligent active in-memory persistence store fallback ensuring zero crashes or dependencies when MongoDB is not running locally.
+- **Database Layer**: MongoDB-backed records for accounts, opportunities, applications, mentor requests, and assessment attempts when `MONGODB_URI` is configured; in-memory demo fallback when MongoDB is unavailable. In-memory changes are lost on restart.
 - **Design**: Modern glassmorphism, responsive mobile drawer, accessible forms, animated gradients, and interactive toast notifications.
 
 ---
 
 ## 🚀 Running the Project Locally
+
+### Super Admin access
+Visitors arrive signed out. Public pages can be browsed without an account; sign-in and student registration are available in the header. Copy `.env.example` to `.env`, set a long random `SESSION_SECRET`, configure a reachable persistent MongoDB `MONGODB_URI`, and set `ADMIN_EMAIL` plus a unique `ADMIN_PASSWORD` on the server. The configured email must match the seeded administrator account or an admin account with a server-managed password hash. Demo one-click personas are disabled by default; set `ENABLE_DEMO_ACCOUNTS=true` only for a controlled judging/demo environment. Never put these values in the client build or commit a populated `.env` file.
 
 ### 1. Start the Backend API Server
 ```bash
@@ -90,4 +93,24 @@ npm run dev
 ```
 
 ### 3. Open in Browser
-Visit **`http://localhost:5173`** in your browser. Use the 1-click role switcher in the navbar to test as **Student**, **Company**, or **Admin** seamlessly!
+Visit **`http://localhost:5173`** in your browser. Create a student account or sign in with an existing account. Sign in with the configured admin email and password to open the protected **Super Admin Console**.
+
+### Production build
+From the project root, run `npm run build`, then `npm start`. The server serves the built client and API from `http://localhost:5000`.
+
+
+## NexBridge v2 — Judge-ready verification upgrade
+
+The upgraded build adds:
+- Beginner / Intermediate / Advanced skill assessments
+- randomized server-selected question pools
+- coding tasks for Python, JavaScript and SQL using a server-side rubric
+- protected answer keys and one-time, expiring assessment attempts
+- retry cooldowns and per-skill daily limits
+- explicit server-issued verified skill records with score and proficiency
+- matching based on verified skills rather than editable self-declared skills
+- scrypt password hashing for newly registered accounts
+- signed expiring sessions, role authorization, protected profile fields, rate limiting and security headers
+- a judge-facing security-control checklist in the Skill Verification page
+
+See `SECURITY_AND_VERIFICATION.md` for the demo checklist and production boundary.

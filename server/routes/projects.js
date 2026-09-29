@@ -1,11 +1,12 @@
 import express from 'express';
 import { db } from '../db/database.js';
 import { calculateSkillMatch } from '../utils/matcher.js';
+import { authenticate, optionalAuthenticate, requireRole } from '../middleware/auth.js';
 
 const router = express.Router();
 
 // Get all projects with optional student skill matching calculation
-router.get('/', async (req, res) => {
+router.get('/', optionalAuthenticate, async (req, res) => {
   try {
     const { studentId, search, type, industry, minMatch, sort = 'match', companyId } = req.query;
     
@@ -18,11 +19,10 @@ router.get('/', async (req, res) => {
 
     // If studentId provided, fetch student skills to compute matching
     let studentSkills = [];
-    if (studentId) {
-      const student = await db.getUserById(studentId);
-      if (student && student.skills) {
-        studentSkills = student.skills;
-      }
+    const effectiveStudentId = req.user?.role === 'student' ? req.user._id : studentId;
+    if (effectiveStudentId) {
+      const student = await db.getUserById(effectiveStudentId);
+      if (student && student.verifiedSkills) studentSkills = student.verifiedSkills;
     }
 
     // Attach skill match stats to each project
@@ -30,11 +30,11 @@ router.get('/', async (req, res) => {
       const match = calculateSkillMatch(studentSkills, proj.requiredSkills);
       return {
         ...proj,
-        matchPercentage: studentId ? match.matchPercentage : null,
-        matchedSkills: studentId ? match.matchedSkills : [],
-        missingSkills: studentId ? match.missingSkills : proj.requiredSkills,
-        matchBadge: studentId ? match.badge : null,
-        matchBadgeColor: studentId ? match.badgeColor : null
+        matchPercentage: effectiveStudentId ? match.matchPercentage : null,
+        matchedSkills: effectiveStudentId ? match.matchedSkills : [],
+        missingSkills: effectiveStudentId ? match.missingSkills : proj.requiredSkills,
+        matchBadge: effectiveStudentId ? match.badge : null,
+        matchBadgeColor: effectiveStudentId ? match.badgeColor : null
       };
     });
 
@@ -57,12 +57,12 @@ router.get('/', async (req, res) => {
       enriched = enriched.filter(p => p.industry === industry);
     }
 
-    if (studentId && minMatch) {
+    if (effectiveStudentId && minMatch) {
       enriched = enriched.filter(p => p.matchPercentage >= Number(minMatch));
     }
 
     // Sorting
-    if (studentId && sort === 'match') {
+    if (effectiveStudentId && sort === 'match') {
       enriched.sort((a, b) => (b.matchPercentage || 0) - (a.matchPercentage || 0));
     } else if (sort === 'deadline') {
       enriched.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
@@ -77,9 +77,9 @@ router.get('/', async (req, res) => {
 });
 
 // Get single project
-router.get('/:id', async (req, res) => {
+router.get('/:id', optionalAuthenticate, async (req, res) => {
   try {
-    const { studentId } = req.query;
+    const studentId = req.user?.role === 'student' ? req.user._id : undefined;
     const project = await db.getProjectById(req.params.id);
     if (!project) return res.status(404).json({ error: 'Project not found' });
 
@@ -87,7 +87,7 @@ router.get('/:id', async (req, res) => {
     if (studentId) {
       const student = await db.getUserById(studentId);
       if (student) {
-        matchStats = calculateSkillMatch(student.skills || [], project.requiredSkills || []);
+        matchStats = calculateSkillMatch(student.verifiedSkills || [], project.requiredSkills || []);
       }
     }
 
@@ -117,7 +117,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create new project (Company only)
-router.post('/', async (req, res) => {
+router.post('/', authenticate, requireRole('company', 'admin'), async (req, res) => {
   try {
     const {
       title,
@@ -139,6 +139,10 @@ router.post('/', async (req, res) => {
 
     if (!title || !companyId || !companyName || !duration || !deadline || !stipend || !description) {
       return res.status(400).json({ error: 'Please provide all required fields.' });
+    }
+
+    if (req.user.role === 'company' && companyId !== req.user._id) {
+      return res.status(403).json({ error: 'A company can only create projects for its own account.' });
     }
 
     const newProject = await db.createProject({
@@ -166,9 +170,14 @@ router.post('/', async (req, res) => {
 });
 
 // Update project
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticate, requireRole('company', 'admin'), async (req, res) => {
   try {
-    const updated = await db.updateProject(req.params.id, req.body);
+    const existing = await db.getProjectById(req.params.id);
+    if (!existing) return res.status(404).json({ error: 'Project not found' });
+    if (req.user.role === 'company' && existing.companyId !== req.user._id) return res.status(403).json({ error: 'You can only update your own projects.' });
+    const safeUpdate = { ...req.body };
+    delete safeUpdate.companyId;
+    const updated = await db.updateProject(req.params.id, safeUpdate);
     if (!updated) return res.status(404).json({ error: 'Project not found' });
     res.json({ success: true, project: updated });
   } catch (err) {
@@ -177,8 +186,11 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete project
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticate, requireRole('company', 'admin'), async (req, res) => {
   try {
+    const existing = await db.getProjectById(req.params.id);
+    if (!existing) return res.status(404).json({ error: 'Project not found' });
+    if (req.user.role === 'company' && existing.companyId !== req.user._id) return res.status(403).json({ error: 'You can only delete your own projects.' });
     const success = await db.deleteProject(req.params.id);
     if (!success) return res.status(404).json({ error: 'Project not found' });
     res.json({ success: true, message: 'Project deleted successfully' });

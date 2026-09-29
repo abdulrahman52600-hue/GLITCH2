@@ -14,7 +14,7 @@ const SUGGESTED_INTERESTS = [
   'FinTech Algorithms', 'Cloud Security', 'Human-Computer Interaction'
 ];
 
-export default function StudentProfilePage() {
+export default function StudentProfilePage({ onVerifySkill }) {
   const { user, updateUserProfile } = useAuth();
   const { showToast } = useToast();
 
@@ -106,7 +106,7 @@ export default function StudentProfilePage() {
         skills,
         interests
       });
-      showToast('Profile and verified skills updated! Algorithmic match scores recalculated across all sprints.', 'success');
+      showToast('Profile saved. Verified skills remain protected and are updated only through assessments.', 'success');
     } catch (err) {
       showToast('Failed to save profile', 'error');
     } finally {
@@ -129,7 +129,7 @@ export default function StudentProfilePage() {
               Student Profile & Skill Inventory
             </h1>
             <p className="text-xs text-on-surface-variant font-medium mt-0.5">
-              Your registered skills are directly queried by the matching engine to benchmark sprint compatibility.
+              Your self-declared skills help describe your profile; only server-verified skills are used to benchmark sprint compatibility.
             </p>
           </div>
 
@@ -156,13 +156,45 @@ export default function StudentProfilePage() {
                 </h2>
               </div>
               <span className="text-xs font-bold text-[#274c19] bg-[#B8D8A2]/30 px-2.5 py-1 rounded-full border border-[#B8D8A2]/50 font-mono">
-                Live in Match Engine
+                Self-Declared Only
               </span>
             </div>
 
             <p className="text-xs text-on-surface-variant leading-relaxed">
-              Add languages, frameworks, databases, and APIs. These are compared against company requirements to calculate your match percentage (e.g. 5/5 = 100%, 4/5 = 80%).
+              Add languages, frameworks, databases, and APIs you know. These are saved as self-declared skills; the matching engine uses only skills you verify through an assessment.
             </p>
+
+            <div className="rounded-xl border border-primary/20 bg-primary-fixed/20 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <div className="text-sm font-bold text-on-surface">Want this skill to count for internships?</div>
+                <div className="text-xs text-on-surface-variant mt-1">Take a server-validated assessment and earn a verified skill badge.</div>
+              </div>
+              <button type="button" onClick={onVerifySkill} className="px-4 py-2.5 rounded-xl bg-primary text-on-primary text-xs font-bold shrink-0">Verify a Skill</button>
+            </div>
+
+            <div className="rounded-xl bg-surface-container-low p-4 border border-outline-variant/15">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary text-[20px]">verified</span>
+                  <h3 className="text-sm font-bold">Verified Skills ({(user?.verifiedSkills || []).length})</h3>
+                </div>
+                <span className="text-[10px] font-mono font-bold text-[#244b16] bg-[#B8D8A2]/30 px-2 py-1 rounded-full">SERVER VERIFIED</span>
+              </div>
+              <div className="mb-3 rounded-lg bg-white/70 border border-[#B8D8A2]/40 px-3 py-2 text-[10px] text-on-surface-variant">
+                <strong className="text-on-surface">Verification evidence:</strong> server-scored assessment · 70% pass threshold · proficiency level recorded · profile edits cannot overwrite this record.
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {(user?.verifiedSkills || []).map(item => (
+                  <span key={item.skill} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container-lowest border border-[#B8D8A2]/60 text-xs font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#6a9e48]"></span>
+                    <span>{item.skill}</span>
+                    <span className="font-mono text-[10px] text-on-surface-variant">{item.score}% · {item.level}</span>
+                    <span className="text-[9px] text-[#376225] font-mono">VERIFIED</span>
+                  </span>
+                ))}
+                {(!user?.verifiedSkills || user.verifiedSkills.length === 0) && <span className="text-xs text-on-surface-variant">No verified skills yet.</span>}
+              </div>
+            </div>
 
             {/* Add skill input */}
             <div className="flex gap-2">

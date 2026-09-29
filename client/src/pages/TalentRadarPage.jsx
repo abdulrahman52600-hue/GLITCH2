@@ -1,0 +1,43 @@
+import React, { useMemo, useState } from 'react';
+import { useAuth } from '../context/AuthContext.jsx';
+
+const normalize = s => s.toLowerCase().replace(/\.js$/,'').replace(/\s+/g,'');
+
+export default function TalentRadarPage({ projects = [] }) {
+  const { demoUsers } = useAuth();
+  const [projectId, setProjectId] = useState(projects[0]?._id || '');
+  const [verifiedOnly, setVerifiedOnly] = useState(true);
+  const [minProficiency, setMinProficiency] = useState('Any');
+  const [proofCandidate, setProofCandidate] = useState(null);
+
+  const project = projects.find(p => p._id === projectId) || projects[0];
+  const candidates = useMemo(() => {
+    if (!project) return [];
+    return (demoUsers || []).filter(u => u.role === 'student').map(candidate => {
+      const verified = candidate.verifiedSkills || [];
+      const matched = (project.requiredSkills || []).filter(req => verified.some(v => normalize(v.skill) === normalize(req)));
+      const missing = (project.requiredSkills || []).filter(req => !matched.includes(req));
+      const avg = matched.length ? Math.round(matched.reduce((a, req) => a + (verified.find(v => normalize(v.skill) === normalize(req))?.score || 0), 0) / matched.length) : 0;
+      const levelOk = minProficiency === 'Any' || matched.some(req => {
+        const lvl = verified.find(v => normalize(v.skill) === normalize(req))?.level;
+        return minProficiency === 'Advanced' ? lvl === 'Advanced' : lvl === 'Advanced' || lvl === 'Intermediate';
+      });
+      return { candidate, matched, missing, match: Math.round((matched.length / Math.max(project.requiredSkills.length,1))*100), avg, levelOk };
+    }).filter(x => !verifiedOnly || x.matched.length > 0).filter(x => x.levelOk).sort((a,b) => b.match-a.match || b.avg-a.avg);
+  }, [demoUsers, project, verifiedOnly, minProficiency]);
+
+  return <div className="max-w-5xl mx-auto px-4 sm:px-6 py-7 pb-28 min-h-screen space-y-5">
+    <section className="rounded-2xl bg-surface-container-lowest border border-outline-variant/20 shadow-sm p-5 sm:p-7">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
+        <div><div className="font-mono text-[10px] font-bold tracking-widest text-primary">EMPLOYER TALENT RADAR</div><h1 className="text-2xl font-extrabold mt-1">Find capability, not keywords.</h1><p className="text-xs text-on-surface-variant mt-2 max-w-2xl">Search the student pool against a real sprint requirement. Every match below is explained by verified skill evidence and proficiency.</p></div>
+        <div className="min-w-[280px]"><label className="text-[10px] font-bold text-on-surface-variant uppercase">Project requirement</label><select value={project?._id||''} onChange={e=>setProjectId(e.target.value)} className="w-full mt-1.5 rounded-xl border border-outline-variant/30 bg-surface-container-low p-2.5 text-xs font-semibold">{projects.map(p=><option key={p._id} value={p._id}>{p.title}</option>)}</select></div>
+      </div>
+      <div className="flex flex-wrap gap-2 mt-5"><button onClick={()=>setVerifiedOnly(v=>!v)} className={`px-3 py-1.5 rounded-full text-xs font-bold ${verifiedOnly?'bg-primary text-on-primary':'bg-surface-container text-on-surface-variant'}`}>✓ Verified skills only</button><select value={minProficiency} onChange={e=>setMinProficiency(e.target.value)} className="px-3 py-1.5 rounded-full bg-surface-container text-xs font-bold border-0"><option>Any</option><option>Intermediate+</option><option>Advanced</option></select></div>
+    </section>
+
+    {project && <section className="grid grid-cols-2 sm:grid-cols-4 gap-3"><div className="p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/20"><div className="text-xl font-black">{project.requiredSkills?.length || 0}</div><div className="text-[10px] text-on-surface-variant">Required skills</div></div><div className="p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/20"><div className="text-xl font-black">{candidates.length}</div><div className="text-[10px] text-on-surface-variant">Evidence matches</div></div><div className="p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/20"><div className="text-xl font-black">{project.duration}</div><div className="text-[10px] text-on-surface-variant">Sprint duration</div></div><div className="p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/20"><div className="text-xl font-black">{project.stipend}</div><div className="text-[10px] text-on-surface-variant">Project value</div></div></section>}
+
+    <section className="space-y-3">{candidates.map((item, idx) => <article key={item.candidate._id} className="rounded-xl bg-surface-container-lowest border border-outline-variant/20 p-4 sm:p-5 shadow-sm"><div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4"><div className="flex items-center gap-3"><img src={item.candidate.avatar} alt={item.candidate.name} className="w-12 h-12 rounded-xl object-cover"/><div><div className="flex items-center gap-2"><h2 className="font-bold text-sm">{item.candidate.name}</h2><span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[#B8D8A2]/30 text-[#376225]">VERIFIED PROFILE</span></div><p className="text-[10px] text-on-surface-variant mt-1">{item.candidate.university} • {item.candidate.degree}</p></div></div><div className="text-right"><div className="text-2xl font-black text-primary">{item.match}%</div><div className="text-[9px] text-on-surface-variant font-bold uppercase">requirement coverage</div></div></div><div className="grid md:grid-cols-3 gap-3 mt-4"><div className="md:col-span-2"><div className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-2">Why this candidate matches</div><div className="flex flex-wrap gap-2">{item.matched.map(skill => { const v=item.candidate.verifiedSkills.find(x=>normalize(x.skill)===normalize(skill)); return <span key={skill} className="px-2.5 py-1.5 rounded-lg bg-[#B8D8A2]/25 border border-[#B8D8A2]/50 text-[10px] font-bold text-[#376225]">✓ {skill} · {v.score}% · {v.level}</span> })}{item.missing.map(skill=><span key={skill} className="px-2.5 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-[10px] font-bold text-amber-800">○ {skill} · gap</span>)}</div></div><div className="rounded-xl bg-surface-container-low p-3"><div className="text-[10px] font-bold">Evidence snapshot</div><div className="text-xs mt-2">{item.candidate.sprintsCompleted || 0} sprints</div><div className="text-xs">{item.candidate.rating || '—'}/5 rating</div><div className="text-xs">{item.avg || 0}% avg matched-skill score</div></div></div><div className="flex justify-end mt-4"><button onClick={()=>setProofCandidate(proofCandidate === item.candidate._id ? null : item.candidate._id)} className="px-3 py-2 rounded-lg bg-primary text-on-primary text-xs font-bold">{proofCandidate === item.candidate._id ? 'Hide Proof' : 'Prove It →'}</button></div>{proofCandidate === item.candidate._id && <div className="mt-4 rounded-xl bg-primary-fixed/40 border border-primary/20 p-4"><div className="flex items-center justify-between"><div><div className="text-xs font-bold">Proof-of-work preview</div><p className="text-[10px] text-on-surface-variant mt-1">Confidential assessment answers stay hidden. The employer sees only verification evidence.</p></div><span className="material-symbols-outlined text-primary">lock</span></div><div className="grid sm:grid-cols-3 gap-2 mt-3"><div className="p-3 rounded-lg bg-white/70"><div className="text-[9px] uppercase font-bold text-on-surface-variant">Verified skills</div><div className="text-sm font-black mt-1">{item.matched.length}</div></div><div className="p-3 rounded-lg bg-white/70"><div className="text-[9px] uppercase font-bold text-on-surface-variant">Matched score</div><div className="text-sm font-black mt-1">{item.avg}% avg</div></div><div className="p-3 rounded-lg bg-white/70"><div className="text-[9px] uppercase font-bold text-on-surface-variant">Work history</div><div className="text-sm font-black mt-1">{item.candidate.sprintsCompleted || 0} sprints</div></div></div></div>}</article>)}{!candidates.length && <div className="rounded-xl bg-surface-container-lowest border border-dashed border-outline-variant/30 p-10 text-center text-xs text-on-surface-variant">No candidates meet the current evidence filters. Lower the proficiency filter or turn off “Verified skills only.”</div>}</section>
+    <p className="text-[10px] text-on-surface-variant">Demo note: candidate data is drawn from NexBridge’s seeded demo profiles. In production, this radar would query the verified talent pool with company authorization.</p>
+  </div>;
+}

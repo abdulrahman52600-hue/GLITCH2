@@ -1,342 +1,103 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import NexBridgeLogo from './NexBridgeLogo.jsx';
-import { 
-  Building2, 
-  GraduationCap, 
-  ShieldCheck, 
-  Menu, 
-  X, 
-  ChevronDown,
-  Sparkles
-} from 'lucide-react';
+import { Bell, Check, ChevronDown, LogOut, ShieldCheck } from 'lucide-react';
+import { api } from '../services/api.js';
 
 export default function Navbar({ activePage, setActivePage, setSelectedProjectId }) {
-  const { user, role, switchRole } = useAuth();
-  const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
+  const { user, role, logout } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationError, setNotificationError] = useState('');
+  const notificationRef = useRef(null);
+  const loadNotifications = useCallback(async () => {
+    if (!user) return;
+    try {
+      const response = await api.getNotifications();
+      setNotifications(response.notifications || []);
+      setNotificationError('');
+    } catch (error) { setNotificationError(error.message || 'Could not load notifications.'); }
+  }, [user]);
+  useEffect(() => { loadNotifications(); }, [loadNotifications]);
+  useEffect(() => {
+    const closeOutside = (event) => { if (!notificationRef.current?.contains(event.target)) setNotificationsOpen(false); };
+    const closeEscape = (event) => { if (event.key === 'Escape') setNotificationsOpen(false); };
+    document.addEventListener('pointerdown', closeOutside);
+    document.addEventListener('keydown', closeEscape);
+    return () => { document.removeEventListener('pointerdown', closeOutside); document.removeEventListener('keydown', closeEscape); };
+  }, []);
 
   const navigate = (page, projectId = null) => {
     if (projectId) setSelectedProjectId(projectId);
     setActivePage(page);
+    setMenuOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const getDashboardPage = () => {
-    if (role === 'company') return 'company-dashboard';
-    if (role === 'admin') return 'admin-dashboard';
-    return 'student-dashboard';
-  };
+  const dashboardPage = role === 'company' ? 'company-dashboard' : role === 'admin' ? 'admin-dashboard' : 'student-dashboard';
+  const linkClass = (page) => `rounded-xl px-3 py-2 text-sm font-semibold transition ${activePage === page ? 'bg-primary-fixed/40 text-primary' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'}`;
 
   return (
-    <>
-      {/* Top Fixed Header */}
-      <header className="fixed top-0 w-full z-50 bg-[#ffffff]/90 backdrop-blur-xl border-b border-[#eaedff] shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
-        <div className="max-w-7xl mx-auto h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
-          
-          {/* Logo & Subtitle */}
-          <div 
-            onClick={() => navigate('home')} 
-            className="flex items-center gap-3 cursor-pointer select-none group"
-          >
-            <NexBridgeLogo className="h-8 sm:h-9 w-auto" />
-            <div className="hidden xl:flex flex-col border-l border-slate-200 pl-3">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-primary">Micro-Internships</span>
-              <span className="text-[11px] text-on-surface-variant font-medium">Skill-Matched Sprints</span>
-            </div>
+    <header className="fixed top-0 z-50 w-full border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+        <button onClick={() => navigate('home')} aria-label="NexBridge home" className="shrink-0">
+          <NexBridgeLogo className="h-8 w-auto sm:h-9" />
+        </button>
+
+        <nav aria-label="Main navigation" className="hidden items-center gap-1 md:flex">
+          <button onClick={() => navigate('home')} className={linkClass('home')}>Home</button>
+          <button onClick={() => navigate('explore')} className={linkClass('explore')}>Explore Sprints</button>
+          <button onClick={() => navigate('mentors')} className={linkClass('mentors')}>Mentors</button>
+          {user && <button onClick={() => navigate('applications')} className={linkClass('applications')}>Applications</button>}
+          {user && <button onClick={() => navigate(dashboardPage)} className={linkClass(dashboardPage)}>Dashboard</button>}
+        </nav>
+
+        {!user ? (
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+            <button onClick={() => navigate('login')} className="rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">Sign in</button>
+            <button onClick={() => navigate('signup')} className="rounded-xl bg-primary px-3 py-2 text-sm font-bold text-on-primary shadow-sm hover:opacity-90">Create account</button>
           </div>
-
-          {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-1 lg:gap-2">
-            <button
-              onClick={() => navigate('home')}
-              className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all ${
-                activePage === 'home'
-                  ? 'text-primary bg-primary-fixed/40 font-bold'
-                  : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
-              }`}
-            >
-              Home
-            </button>
-
-            <button
-              onClick={() => navigate('explore')}
-              className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-1.5 ${
-                activePage === 'explore' || activePage === 'project-details'
-                  ? 'text-primary bg-primary-fixed/40 font-bold'
-                  : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[19px]">explore</span>
-              <span>Explore Sprints</span>
-            </button>
-
-            <button
-              onClick={() => navigate('mentors')}
-              className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-1.5 ${
-                activePage === 'mentors'
-                  ? 'text-primary bg-primary-fixed/40 font-bold'
-                  : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[19px]">school</span>
-              <span>Mentors</span>
-            </button>
-
-            <button
-              onClick={() => navigate('applications')}
-              className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-1.5 ${
-                activePage === 'applications'
-                  ? 'text-primary bg-primary-fixed/40 font-bold'
-                  : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[19px]">work</span>
-              <span>Applications</span>
-            </button>
-
-            <button
-              onClick={() => navigate(getDashboardPage())}
-              className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-1.5 ${
-                activePage.includes('dashboard')
-                  ? 'text-primary bg-primary-fixed/40 font-bold'
-                  : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[19px]">space_dashboard</span>
-              <span>Dashboard</span>
-            </button>
-          </nav>
-
-          {/* Right Action Icons & Persona Switcher */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            
-            {/* 1-Click Role Switcher Pill Bar */}
-            <div className="hidden sm:flex items-center bg-surface-container p-1 rounded-full border border-outline-variant/30 text-xs font-semibold">
-              <button
-                onClick={() => {
-                  switchRole('student');
-                  navigate('student-dashboard');
-                }}
-                className={`px-3 py-1 rounded-full transition-all flex items-center gap-1 ${
-                  role === 'student'
-                    ? 'bg-primary text-on-primary shadow-sm font-bold'
-                    : 'text-on-surface-variant hover:text-on-surface'
-                }`}
-              >
-                <GraduationCap className="w-3.5 h-3.5" />
-                <span>Student</span>
+        ) : (
+          <div className="relative flex shrink-0 items-center gap-2">
+            {role === 'admin' && <button onClick={() => navigate('admin-dashboard')} className="hidden items-center gap-1.5 rounded-xl bg-primary px-3 py-2 text-xs font-bold text-on-primary sm:inline-flex"><ShieldCheck className="h-4 w-4" />Admin Console</button>}
+            <div className="relative" ref={notificationRef}>
+              <button type="button" onClick={() => { setNotificationsOpen(open => !open); if (!notificationsOpen) loadNotifications(); }} aria-label={`Notifications${notifications.some(item => !item.readAt) ? ', unread items' : ''}`} aria-expanded={notificationsOpen} className="relative rounded-full p-2.5 text-slate-600 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-primary/40">
+                <Bell className="h-5 w-5" />
+                {notifications.some(item => !item.readAt) && <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full border-2 border-white bg-rose-500" />}
               </button>
-
-              <button
-                onClick={() => {
-                  switchRole('company');
-                  navigate('company-dashboard');
-                }}
-                className={`px-3 py-1 rounded-full transition-all flex items-center gap-1 ${
-                  role === 'company'
-                    ? 'bg-primary text-on-primary shadow-sm font-bold'
-                    : 'text-on-surface-variant hover:text-on-surface'
-                }`}
-              >
-                <Building2 className="w-3.5 h-3.5" />
-                <span>Company</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  switchRole('admin');
-                  navigate('admin-dashboard');
-                }}
-                className={`px-3 py-1 rounded-full transition-all flex items-center gap-1 ${
-                  role === 'admin'
-                    ? 'bg-primary text-on-primary shadow-sm font-bold'
-                    : 'text-on-surface-variant hover:text-on-surface'
-                }`}
-              >
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Admin</span>
-              </button>
-            </div>
-
-            {/* Notification Bell */}
-            <button 
-              aria-label="Notifications" 
-              className="relative w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors"
-            >
-              <span className="material-symbols-outlined text-[22px]">notifications</span>
-              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-error ring-2 ring-white"></span>
-            </button>
-
-            {/* User Profile Avatar with Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
-                className="flex items-center gap-2 p-1 pl-1.5 rounded-full hover:bg-surface-container border border-outline-variant/30 transition-all"
-              >
-                <img
-                  src={user?.avatar || "https://lh3.googleusercontent.com/aida-public/AB6AXuBIXfx4rAhfmr-j1tvTrycgZSYhAhJmbRnfpSj95b5Yr8T6_e2CiVVYzlalVrtbd9GLTNSjRvZm1t7q9b3qLJiX4A2G-2xWicEsAIdFhxFp8wcMKQb_OBNfVqSWjkJElANx4y7Jhpctb2Xh4ns_2thsqgvxToPBngjDOrbdv0Vtv5hnEM4ziN9wRin88TUAtBD2huXCJgBc6dkDbrbueu8qLfrK_m3zqin74JznPrPwFcIt-LV_k-pk"}
-                  alt={user?.name || "Avatar"}
-                  className="w-8 h-8 rounded-full object-cover ring-2 ring-primary/20"
-                />
-                <span className="hidden lg:inline text-xs font-bold text-on-surface pr-1">
-                  {user?.name?.split(' ')[0]}
-                </span>
-                <ChevronDown className="w-3.5 h-3.5 text-on-surface-variant pr-1" />
-              </button>
-
-              {/* Dropdown Menu */}
-              {roleDropdownOpen && (
-                <div 
-                  className="absolute right-0 mt-2 w-64 rounded-2xl bg-surface-container-lowest shadow-2xl border border-outline-variant/30 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
-                  onMouseLeave={() => setRoleDropdownOpen(false)}
-                >
-                  <div className="px-4 py-3 border-b border-surface-container">
-                    <p className="text-xs text-on-surface-variant">Active Profile</p>
-                    <p className="text-sm font-bold text-on-surface truncate">{user?.name}</p>
-                    <p className="text-xs text-primary font-semibold capitalize flex items-center gap-1.5 mt-0.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                      {role} • {user?.university || user?.companyName || 'Verified'}
-                    </p>
-                  </div>
-
-                  <div className="py-1">
-                    {role === 'student' && (
-                      <button
-                        onClick={() => {
-                          setRoleDropdownOpen(false);
-                          navigate('profile');
-                        }}
-                        className="w-full text-left px-4 py-2 text-sm text-on-surface hover:bg-primary-fixed/30 hover:text-primary flex items-center gap-2"
-                      >
-                        <span className="material-symbols-outlined text-[18px]">account_circle</span>
-                        <span>Student Profile & Skills</span>
-                      </button>
-                    )}
-
-                    <button
-                      onClick={() => {
-                        setRoleDropdownOpen(false);
-                        navigate(getDashboardPage());
-                      }}
-                      className="w-full text-left px-4 py-2 text-sm text-on-surface hover:bg-primary-fixed/30 hover:text-primary flex items-center gap-2"
-                    >
-                      <span className="material-symbols-outlined text-[18px]">space_dashboard</span>
-                      <span>{role.charAt(0).toUpperCase() + role.slice(1)} Dashboard</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setRoleDropdownOpen(false);
-                        navigate('login');
-                      }}
-                      className="w-full text-left px-4 py-2 text-sm text-on-surface hover:bg-primary-fixed/30 hover:text-primary flex items-center gap-2"
-                    >
-                      <Sparkles className="w-4 h-4" />
-                      <span>Switch Demo Personas</span>
-                    </button>
-                  </div>
-
-                  <div className="border-t border-surface-container px-3 py-2 bg-surface-container-low">
-                    <p className="text-[11px] font-bold text-on-surface-variant mb-1.5 uppercase">Switch Role</p>
-                    <div className="grid grid-cols-3 gap-1">
-                      <button
-                        onClick={() => {
-                          switchRole('student');
-                          setRoleDropdownOpen(false);
-                          navigate('student-dashboard');
-                        }}
-                        className={`text-[11px] py-1 px-1.5 rounded-lg font-bold text-center ${role === 'student' ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface hover:bg-surface-container-high'}`}
-                      >
-                        Student
-                      </button>
-                      <button
-                        onClick={() => {
-                          switchRole('company');
-                          setRoleDropdownOpen(false);
-                          navigate('company-dashboard');
-                        }}
-                        className={`text-[11px] py-1 px-1.5 rounded-lg font-bold text-center ${role === 'company' ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface hover:bg-surface-container-high'}`}
-                      >
-                        Company
-                      </button>
-                      <button
-                        onClick={() => {
-                          switchRole('admin');
-                          setRoleDropdownOpen(false);
-                          navigate('admin-dashboard');
-                        }}
-                        className={`text-[11px] py-1 px-1.5 rounded-lg font-bold text-center ${role === 'admin' ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface hover:bg-surface-container-high'}`}
-                      >
-                        Admin
-                      </button>
-                    </div>
-                  </div>
+              {notificationsOpen && <section aria-label="Notification center" className="absolute right-0 top-full z-[70] mt-2 w-[min(24rem,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+                <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3"><div><h2 className="text-sm font-extrabold text-slate-900">Notifications</h2><p className="text-[11px] text-slate-500">Updates about applications and your workspace</p></div><button type="button" onClick={async () => { await api.markAllNotificationsRead(); await loadNotifications(); }} disabled={!notifications.some(item => !item.readAt)} className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold text-primary hover:bg-slate-50 disabled:opacity-40"><Check className="h-3.5 w-3.5" />Mark all read</button></div>
+                <div className="max-h-[min(65vh,26rem)] overflow-y-auto">
+                  {notificationError ? <p role="alert" className="p-5 text-center text-xs text-rose-700">{notificationError}</p> : notifications.length ? notifications.map(item => <button key={item._id} type="button" onClick={async () => { if (!item.readAt) await api.markNotificationRead(item._id); await loadNotifications(); setNotificationsOpen(false); navigate(item.href || 'applications'); }} className={`block w-full border-b border-slate-100 px-4 py-3 text-left hover:bg-slate-50 ${item.readAt ? '' : 'bg-emerald-50/60'}`}><span className="flex items-start gap-2"><span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${item.readAt ? 'bg-slate-200' : 'bg-emerald-600'}`} /><span className="min-w-0 flex-1"><span className="block text-xs font-bold text-slate-800">{item.title}</span><span className="mt-1 block text-xs leading-5 text-slate-600">{item.message}</span><span className="mt-1 block text-[10px] text-slate-400">{new Date(item.createdAt).toLocaleString()}</span></span></span></button>) : <p className="p-8 text-center text-xs text-slate-500">You’re all caught up. New application updates will appear here.</p>}
                 </div>
-              )}
+              </section>}
             </div>
-
+            <button onClick={() => setMenuOpen(open => !open)} aria-expanded={menuOpen} aria-label="Open account menu" className="flex items-center gap-2 rounded-full border border-slate-200 p-1 pr-2 hover:bg-slate-50">
+              <img src={user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name || 'NexBridge')}`} alt="" className="h-8 w-8 rounded-full object-cover" />
+              <span className="hidden max-w-28 truncate text-xs font-bold text-slate-700 sm:block">{user.name}</span>
+              <ChevronDown className="h-4 w-4 text-slate-500" />
+            </button>
+            {menuOpen && <div className="absolute right-0 top-full mt-2 w-60 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
+              <div className="border-b border-slate-100 px-3 py-2">
+                <p className="truncate text-sm font-bold text-slate-900">{user.name}</p>
+                <p className="text-xs capitalize text-slate-500">{role} account</p>
+              </div>
+              {role === 'student' && <button onClick={() => navigate('profile')} className="w-full rounded-xl px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50">Profile and skills</button>}
+              {role === 'student' && <button onClick={() => navigate('skill-passport')} className="w-full rounded-xl px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50">Skill Passport</button>}
+              {role === 'admin' && <button onClick={() => navigate('admin-dashboard')} className="w-full rounded-xl px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50">Admin Console</button>}
+              <button onClick={async () => { await logout(); navigate('home'); }} className="mt-1 flex w-full items-center gap-2 rounded-xl border-t border-slate-100 px-3 py-2 text-left text-sm font-semibold text-rose-700 hover:bg-rose-50"><LogOut className="h-4 w-4" />Sign out</button>
+            </div>}
           </div>
-
-        </div>
-      </header>
-
-      {/* Mobile Bottom Navigation Bar (as per the NexBridge UX spec) */}
-      <nav className="md:hidden fixed bottom-0 w-full z-50 pb-safe bg-surface-container-lowest/95 backdrop-blur-xl border-t border-outline-variant/30 shadow-[0_-2px_12px_rgba(0,0,0,0.05)]">
-        <div className="flex items-center justify-around h-16 px-2">
-          <button
-            onClick={() => navigate('explore')}
-            className={`flex flex-col items-center justify-center w-14 h-12 transition-colors ${
-              activePage === 'explore' || activePage === 'project-details' ? 'text-primary font-bold' : 'text-on-surface-variant'
-            }`}
-          >
-            <span className="material-symbols-outlined text-[22px]">explore</span>
-            <span className="text-[11px] font-semibold mt-0.5">Explore</span>
-          </button>
-
-          <button
-            onClick={() => navigate(getDashboardPage())}
-            className={`flex flex-col items-center justify-center w-14 h-12 transition-colors ${
-              activePage.includes('dashboard') ? 'text-primary font-bold' : 'text-on-surface-variant'
-            }`}
-          >
-            <span className="material-symbols-outlined text-[22px]">space_dashboard</span>
-            <span className="text-[11px] font-semibold mt-0.5">Dashboard</span>
-          </button>
-
-          <button
-            onClick={() => navigate('applications')}
-            className={`relative flex flex-col items-center justify-center w-14 h-12 transition-colors ${
-              activePage === 'applications' ? 'text-primary font-bold' : 'text-on-surface-variant'
-            }`}
-          >
-            <span className="material-symbols-outlined text-[22px]">work</span>
-            <span className="absolute top-0.5 right-2 min-w-[16px] h-4 px-1 rounded-full bg-primary text-on-primary font-mono text-[10px] leading-4 text-center">
-              2
-            </span>
-            <span className="text-[11px] font-semibold mt-0.5">Applied</span>
-          </button>
-
-          <button
-            onClick={() => navigate('mentors')}
-            className={`flex flex-col items-center justify-center w-14 h-12 transition-colors ${
-              activePage === 'mentors' ? 'text-primary font-bold' : 'text-on-surface-variant'
-            }`}
-          >
-            <span className="material-symbols-outlined text-[22px]">school</span>
-            <span className="text-[11px] font-semibold mt-0.5">Mentors</span>
-          </button>
-
-          <button
-            onClick={() => navigate('profile')}
-            className={`flex flex-col items-center justify-center w-14 h-12 transition-colors ${
-              activePage === 'profile' ? 'text-primary font-bold' : 'text-on-surface-variant'
-            }`}
-          >
-            <span className="material-symbols-outlined text-[22px]">person</span>
-            <span className="text-[11px] font-semibold mt-0.5">Profile</span>
-          </button>
-        </div>
+        )}
+      </div>
+      <nav aria-label="Mobile navigation" className="flex gap-1 overflow-x-auto border-t border-slate-100 px-3 py-1 md:hidden">
+        <button onClick={() => navigate('home')} className={linkClass('home')}>Home</button>
+        <button onClick={() => navigate('explore')} className={linkClass('explore')}>Explore</button>
+        <button onClick={() => navigate('mentors')} className={linkClass('mentors')}>Mentors</button>
+        {user && <button onClick={() => navigate('applications')} className={linkClass('applications')}>Applications</button>}
+        {user && <button onClick={() => navigate(dashboardPage)} className={linkClass(dashboardPage)}>Dashboard</button>}
       </nav>
-    </>
+    </header>
   );
 }

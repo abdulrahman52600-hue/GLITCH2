@@ -8,7 +8,8 @@ export default function CompanyDashboardPage({
   projects = [], 
   applications = [], 
   onRefreshData,
-  onViewProject 
+  onViewProject,
+  setActivePage 
 }) {
   const { user } = useAuth();
   const { showToast } = useToast();
@@ -204,6 +205,16 @@ export default function CompanyDashboardPage({
             </div>
           </div>
         </div>
+
+        <section className="rounded-xl bg-primary-fixed/50 border border-primary/20 p-4 sm:p-5 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <span className="w-10 h-10 rounded-xl bg-primary text-on-primary flex items-center justify-center shrink-0"><span className="material-symbols-outlined">radar</span></span>
+              <div><h2 className="font-bold text-sm">Talent Radar: hire from verified evidence</h2><p className="text-xs text-on-surface-variant mt-1">Inspect requirement coverage, proficiency, and proof-of-work before reviewing an application.</p></div>
+            </div>
+            <button onClick={() => setActivePage?.('talent-radar')} className="px-3.5 py-2 rounded-lg bg-primary text-on-primary text-xs font-bold shrink-0">Open Talent Radar →</button>
+          </div>
+        </section>
 
         {/* CANDIDATE PIPELINE MANAGER */}
         <section className="bg-surface-container-lowest rounded-xl p-4 sm:p-5 shadow-sm border border-outline-variant/20 space-y-4">

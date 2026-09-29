@@ -10,7 +10,7 @@ export default function HomePage({
   onApply, 
   setActivePage 
 }) {
-  const { switchRole } = useAuth();
+  const { user } = useAuth();
   const { showToast } = useToast();
 
   // Interactive Live Skill Match Simulator state
@@ -113,12 +113,11 @@ export default function HomePage({
 
           <button 
             onClick={() => {
-              switchRole('student');
-              setActivePage('explore');
+              setActivePage(user?.role === 'student' ? 'explore' : 'signup');
             }}
             className="mt-6 w-full py-3 px-4 rounded-xl bg-primary text-on-primary font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow hover:bg-primary-container active:scale-[0.98] transition-all"
           >
-            <span>Explore as Student</span>
+            <span>{user?.role === 'student' ? 'Explore opportunities' : 'Create a student account'}</span>
             <span className="material-symbols-outlined text-base">arrow_forward</span>
           </button>
         </div>
@@ -151,8 +150,7 @@ export default function HomePage({
 
           <button 
             onClick={() => {
-              switchRole('company');
-              setActivePage('company-dashboard');
+              setActivePage(user?.role === 'company' ? 'company-dashboard' : 'login');
             }}
             className="mt-6 w-full py-3 px-4 rounded-xl bg-surface-container-lowest text-on-surface font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm hover:bg-surface-container-high active:scale-[0.98] transition-all border border-outline-variant/30"
           >

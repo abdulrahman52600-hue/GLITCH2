@@ -12,7 +12,9 @@ import {
   AlertCircle,
   Database,
   Activity,
-  Layers
+  Layers,
+  Search,
+  RefreshCw
 } from 'lucide-react';
 import { useToast } from '../context/ToastContext.jsx';
 import { api } from '../services/api.js';
@@ -21,19 +23,23 @@ export default function AdminDashboardPage({ projects = [], onRefreshData }) {
   const { showToast } = useToast();
 
   const [stats, setStats] = useState({
-    totalStudents: 3,
-    totalCompanies: 2,
-    totalProjects: 6,
-    totalApplications: 4,
-    totalMentors: 4,
-    acceptedApplications: 1,
-    shortlistedApplications: 2,
-    avgMatchPercentage: 88,
-    systemMode: 'Active Zero-Config Persistence Store'
+    totalStudents: 0,
+    totalCompanies: 0,
+    totalProjects: 0,
+    totalApplications: 0,
+    totalMentors: 0,
+    acceptedApplications: 0,
+    shortlistedApplications: 0,
+    avgMatchPercentage: 0,
+    systemMode: 'Loading platform status'
   });
 
   const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [userSearch, setUserSearch] = useState('');
+  const [userRoleFilter, setUserRoleFilter] = useState('all');
+  const [projectSearch, setProjectSearch] = useState('');
 
   useEffect(() => {
     async function loadAdminData() {
@@ -44,7 +50,9 @@ export default function AdminDashboardPage({ projects = [], onRefreshData }) {
         ]);
         if (statsRes.success) setStats(statsRes.stats);
         if (usersRes.success) setAllUsers(usersRes.users);
+        setError('');
       } catch (err) {
+        setError(err.message || 'Unable to load governance data.');
         console.error('Failed to load admin stats', err);
       } finally {
         setLoading(false);
@@ -52,6 +60,19 @@ export default function AdminDashboardPage({ projects = [], onRefreshData }) {
     }
     loadAdminData();
   }, [projects]);
+
+  const filteredUsers = allUsers.filter((user) => {
+    const matchesRole = userRoleFilter === 'all' || user.role === userRoleFilter;
+    const query = userSearch.trim().toLowerCase();
+    const matchesSearch = !query || [user.name, user.email, user.university, user.companyName, user.role]
+      .some(value => String(value || '').toLowerCase().includes(query));
+    return matchesRole && matchesSearch;
+  });
+  const filteredProjects = projects.filter(project => {
+    const query = projectSearch.trim().toLowerCase();
+    return !query || [project.title, project.companyName, project.type, project.status]
+      .some(value => String(value || '').toLowerCase().includes(query));
+  });
 
   const handleToggleProjectStatus = async (projectId, currentStatus) => {
     const newStatus = currentStatus === 'Open' ? 'Closed' : 'Open';
@@ -88,13 +109,13 @@ export default function AdminDashboardPage({ projects = [], onRefreshData }) {
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-400/30 text-xs font-bold text-purple-300 mb-2">
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Platform Governance & Analytics</span>
+              <span>Super Admin Console · Platform Governance</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
-              Administrator Oversight Control
+              NexBridge Control Center
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 mt-1">
-              Oversee matching accuracy, verify corporate listings, and monitor student outcomes.
+              Review platform activity, moderate opportunities, and inspect registered accounts.
             </p>
           </div>
 
@@ -107,6 +128,8 @@ export default function AdminDashboardPage({ projects = [], onRefreshData }) {
           </div>
         </div>
       </div>
+
+      {error && <div role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">{error}</div>}
 
       {/* KPI METRIC CARDS */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -125,7 +148,7 @@ export default function AdminDashboardPage({ projects = [], onRefreshData }) {
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
           <div className="text-xs font-bold text-slate-400 uppercase">Active Projects</div>
-          <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">{projects.length}</div>
+          <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">{stats.totalProjects}</div>
           <div className="text-[11px] text-slate-500 mt-0.5">Internships & projects</div>
         </div>
 
@@ -145,16 +168,17 @@ export default function AdminDashboardPage({ projects = [], onRefreshData }) {
 
       {/* PROJECT MODERATION & MANAGEMENT TABLE */}
       <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div className="flex flex-col gap-3 pb-3 border-b border-slate-100 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <Briefcase className="w-5 h-5 text-indigo-600" />
             <h2 className="text-lg font-bold text-slate-900">
-              Project Postings Moderation ({projects.length})
+              Project Postings Moderation ({filteredProjects.length})
             </h2>
           </div>
-          <span className="text-xs font-semibold text-slate-400">
-            Real-time Status Controls
-          </span>
+          <label className="relative w-full sm:max-w-xs">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input value={projectSearch} onChange={e => setProjectSearch(e.target.value)} placeholder="Search opportunities" className="w-full rounded-xl border border-slate-200 py-2 pl-9 pr-3 text-xs outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100" />
+          </label>
         </div>
 
         <div className="overflow-x-auto">
@@ -171,7 +195,7 @@ export default function AdminDashboardPage({ projects = [], onRefreshData }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {projects.map(proj => (
+              {filteredProjects.map(proj => (
                 <tr key={proj._id} className="hover:bg-slate-50/70 transition-colors">
                   <td className="py-3.5 px-4 font-bold text-slate-900">
                     {proj.title}
@@ -214,6 +238,7 @@ export default function AdminDashboardPage({ projects = [], onRefreshData }) {
                   </td>
                 </tr>
               ))}
+              {!filteredProjects.length && <tr><td colSpan="7" className="py-10 text-center text-sm text-slate-500">{loading ? 'Loading opportunities…' : 'No opportunities match this search.'}</td></tr>}
             </tbody>
           </table>
         </div>
@@ -221,16 +246,23 @@ export default function AdminDashboardPage({ projects = [], onRefreshData }) {
 
       {/* USER DIRECTORY TABLE */}
       <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div className="flex flex-col gap-3 pb-3 border-b border-slate-100 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-indigo-600" />
             <h2 className="text-lg font-bold text-slate-900">
-              Verified Platform Users ({allUsers.length})
+              Platform User Directory ({filteredUsers.length})
             </h2>
           </div>
-          <span className="text-xs font-semibold text-slate-400">
-            Students, Companies & Admins
-          </span>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <label className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input value={userSearch} onChange={e => setUserSearch(e.target.value)} placeholder="Search name, email or affiliation" className="w-full rounded-xl border border-slate-200 py-2 pl-9 pr-3 text-xs outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 sm:w-64" />
+            </label>
+            <select value={userRoleFilter} onChange={e => setUserRoleFilter(e.target.value)} aria-label="Filter users by role" className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700">
+              <option value="all">All roles</option><option value="student">Students</option><option value="company">Companies</option><option value="admin">Admins</option>
+            </select>
+            <button onClick={() => { setLoading(true); setError(''); api.getAdminStats().then(res => res.success && setStats(res.stats)).then(() => api.getAdminUsers()).then(res => res.success && setAllUsers(res.users)).catch(err => setError(err.message)).finally(() => setLoading(false)); onRefreshData?.(); }} className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50" aria-label="Refresh admin data"><RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />Refresh</button>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -245,7 +277,7 @@ export default function AdminDashboardPage({ projects = [], onRefreshData }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {allUsers.map(u => (
+              {filteredUsers.map(u => (
                 <tr key={u._id} className="hover:bg-slate-50/70 transition-colors">
                   <td className="py-3.5 px-4 font-bold text-slate-900 flex items-center gap-2">
                     <img
@@ -277,6 +309,7 @@ export default function AdminDashboardPage({ projects = [], onRefreshData }) {
                   </td>
                 </tr>
               ))}
+              {!filteredUsers.length && <tr><td colSpan="5" className="py-10 text-center text-sm text-slate-500">{loading ? 'Loading accounts…' : 'No accounts match these filters.'}</td></tr>}
             </tbody>
           </table>
         </div>

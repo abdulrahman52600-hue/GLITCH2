@@ -8,7 +8,7 @@ export function AuthProvider({ children }) {
   const [demoUsers, setDemoUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Initialize and load default demo user
+  // Restore only a previously authenticated session. New visitors stay signed out.
   useEffect(() => {
     async function loadAuth() {
       try {
@@ -17,18 +17,21 @@ export function AuthProvider({ children }) {
           setDemoUsers(res.users);
           
           const savedUserId = localStorage.getItem('bridge_user_id');
-          if (savedUserId) {
-            const found = res.users.find(u => u._id === savedUserId);
-            if (found) {
-              setUser(found);
-              setLoading(false);
-              return;
+          const savedToken = localStorage.getItem('bridge_access_token');
+          if (savedUserId && savedToken) {
+            try {
+              const profile = await api.getUser(savedUserId);
+              if (profile.success) {
+                setUser(profile.user);
+                setLoading(false);
+                return;
+              }
+            } catch {
+              localStorage.removeItem('bridge_access_token');
+              localStorage.removeItem('bridge_user_id');
             }
           }
 
-          // Default to Zubair Khan (Student)
-          const defaultStudent = res.users.find(u => u.role === 'student') || res.users[0];
-          setUser(defaultStudent);
         }
       } catch (err) {
         console.error('Failed to load demo users', err);
@@ -39,29 +42,27 @@ export function AuthProvider({ children }) {
     loadAuth();
   }, []);
 
-  const switchRole = (newRole) => {
+  const switchRole = async (newRole) => {
     const targetUser = demoUsers.find(u => u.role === newRole);
     if (targetUser) {
-      setUser(targetUser);
-      localStorage.setItem('bridge_user_id', targetUser._id);
+      const res = await api.login({ email: targetUser.email });
+      setUser(res.user);
+      localStorage.setItem('bridge_user_id', res.user._id);
+      localStorage.setItem('bridge_access_token', res.token);
     }
   };
 
-  const loginUser = (userData) => {
+  const loginUser = (userData, token) => {
     setUser(userData);
     localStorage.setItem('bridge_user_id', userData._id);
+    if (token) localStorage.setItem('bridge_access_token', token);
   };
 
-  const logout = () => {
-    // Reset to student Zubair Khan for smooth demo experience
-    const defaultStudent = demoUsers.find(u => u.role === 'student');
-    if (defaultStudent) {
-      setUser(defaultStudent);
-      localStorage.setItem('bridge_user_id', defaultStudent._id);
-    } else {
-      setUser(null);
-      localStorage.removeItem('bridge_user_id');
-    }
+  const logout = async () => {
+    try { await api.logout(); } catch {}
+    setUser(null);
+    localStorage.removeItem('bridge_user_id');
+    localStorage.removeItem('bridge_access_token');
   };
 
   const updateUserProfile = async (updatedData) => {
@@ -84,7 +85,7 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{
         user,
-        role: user?.role || 'student',
+        role: user?.role || null,
         demoUsers,
         loading,
         switchRole,

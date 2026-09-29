@@ -1,467 +1,128 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { CheckCircle2, ExternalLink, LoaderCircle, Star, BriefcaseBusiness } from 'lucide-react';
+import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
+import { api } from '../services/api.js';
 
-export default function ApplicationsPage({ 
-  applications = [], 
-  onRefreshData,
-  onViewProject,
-  setActivePage 
-}) {
+const filters = [
+  ['all', 'All'], ['in-review', 'In review'], ['active', 'Active'], ['completed', 'Completed']
+];
+
+export default function ApplicationsPage({ applications = [], onRefreshData, onViewProject, setActivePage }) {
+  const { role } = useAuth();
   const { showToast } = useToast();
+  const [activeFilter, setActiveFilter] = useState('all');
+  const [busyId, setBusyId] = useState('');
+  const [completionFor, setCompletionFor] = useState('');
+  const [review, setReview] = useState({ summary: '', rating: '5', skills: '', evidenceUrl: '' });
 
-  const [activeFilter, setActiveFilter] = useState('all'); // 'all' | 'in-review' | 'active' | 'completed'
-  const [tipDismissed, setTipDismissed] = useState(false);
-  const [m3Submitted, setM3Submitted] = useState(false);
+  const counts = useMemo(() => ({
+    all: applications.length,
+    'in-review': applications.filter(app => ['Pending', 'Under Review', 'Shortlisted'].includes(app.status)).length,
+    active: applications.filter(app => ['Accepted', 'In Progress'].includes(app.status)).length,
+    completed: applications.filter(app => app.status === 'Completed').length
+  }), [applications]);
 
-  const handleSubmitMilestone3 = () => {
-    setM3Submitted(true);
-    showToast('Milestone 3 PR package submitted to CloudScale lead mentor!', 'success');
+  const visibleApplications = useMemo(() => applications.filter(app => {
+    if (activeFilter === 'in-review') return ['Pending', 'Under Review', 'Shortlisted'].includes(app.status);
+    if (activeFilter === 'active') return ['Accepted', 'In Progress'].includes(app.status);
+    if (activeFilter === 'completed') return app.status === 'Completed';
+    return true;
+  }), [activeFilter, applications]);
+
+  const changeStatus = async (application, status) => {
+    setBusyId(application._id);
+    try {
+      await api.updateApplicationStatus(application._id, status);
+      showToast(`Application marked ${status.toLowerCase()}.`, 'success');
+      await onRefreshData?.();
+    } catch (err) { showToast(err.message || 'Could not update application.', 'error'); }
+    finally { setBusyId(''); }
+  };
+
+  const completeWork = async (application) => {
+    setBusyId(application._id);
+    try {
+      await api.completeApplication(application._id, {
+        summary: review.summary,
+        rating: Number(review.rating),
+        skillsDemonstrated: review.skills.split(',').map(skill => skill.trim()).filter(Boolean),
+        evidenceUrl: review.evidenceUrl.trim()
+      });
+      showToast('Completion and employer review added to the student’s work record.', 'success');
+      setCompletionFor('');
+      setReview({ summary: '', rating: '5', skills: '', evidenceUrl: '' });
+      await onRefreshData?.();
+    } catch (err) { showToast(err.message || 'Could not record completion.', 'error'); }
+    finally { setBusyId(''); }
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 pb-28 min-h-screen">
-      <div className="flex flex-col w-full pb-6 space-y-4">
-        
-        {/* Top Greeting & Scope Indicator */}
-        <div className="flex items-center justify-between pt-1">
-          <div className="flex flex-col min-w-0">
-            <span className="font-extrabold text-xl sm:text-2xl text-on-surface tracking-tight">Applications & Sprints</span>
-            <span className="text-xs text-on-surface-variant flex items-center gap-1.5 mt-0.5 font-medium">
-              <span className="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
-              1 active sprint • 2 pending sponsor reviews
-            </span>
-          </div>
-          <div className="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed shadow-sm flex-shrink-0">
-            <span className="material-symbols-outlined text-[20px]">bolt</span>
-          </div>
+    <div className="mx-auto min-h-screen max-w-5xl space-y-6 px-4 py-8 pb-24 sm:px-6">
+      <section className="rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 p-6 text-white shadow-lg sm:p-8">
+        <div className="flex items-start justify-between gap-4">
+          <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-indigo-200">NexBridge work record</p><h1 className="mt-2 text-2xl font-black sm:text-3xl">Applications &amp; outcomes</h1><p className="mt-2 max-w-2xl text-sm text-slate-300">Follow each application through review, active work, and employer-verified completion.</p></div>
+          <BriefcaseBusiness className="hidden h-9 w-9 text-indigo-200 sm:block" />
         </div>
-
-        {/* Filter Pills Tab Bar */}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 -mx-4 px-4 sm:mx-0 sm:px-0">
-          <button 
-            onClick={() => setActiveFilter('all')}
-            className={`tab-btn px-3.5 py-1.5 rounded-full font-bold text-xs shadow-sm transition-all flex items-center gap-1.5 flex-shrink-0 ${
-              activeFilter === 'all'
-                ? 'bg-primary text-on-primary'
-                : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
-            }`}
-            type="button"
-          >
-            <span>All</span>
-            <span className="px-1.5 py-0.2 rounded-full bg-white/20 font-mono text-[11px]">4</span>
-          </button>
-
-          <button 
-            onClick={() => setActiveFilter('in-review')}
-            className={`tab-btn px-3.5 py-1.5 rounded-full font-bold text-xs transition-all flex items-center gap-1.5 flex-shrink-0 ${
-              activeFilter === 'in-review'
-                ? 'bg-primary text-on-primary shadow-sm'
-                : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
-            }`}
-            type="button"
-          >
-            <span>In Review</span>
-            <span className="px-1.5 py-0.2 rounded-full bg-surface-container-highest text-on-surface-variant font-mono text-[11px]">2</span>
-          </button>
-
-          <button 
-            onClick={() => setActiveFilter('active')}
-            className={`tab-btn px-3.5 py-1.5 rounded-full font-bold text-xs transition-all flex items-center gap-1.5 flex-shrink-0 ${
-              activeFilter === 'active'
-                ? 'bg-primary text-on-primary shadow-sm'
-                : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
-            }`}
-            type="button"
-          >
-            <span>Active</span>
-            <span className="px-1.5 py-0.2 rounded-full bg-primary-fixed text-on-primary-fixed font-mono text-[11px]">1</span>
-          </button>
-
-          <button 
-            onClick={() => setActiveFilter('completed')}
-            className={`tab-btn px-3.5 py-1.5 rounded-full font-bold text-xs transition-all flex items-center gap-1.5 flex-shrink-0 ${
-              activeFilter === 'completed'
-                ? 'bg-primary text-on-primary shadow-sm'
-                : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
-            }`}
-            type="button"
-          >
-            <span>Completed</span>
-            <span className="px-1.5 py-0.2 rounded-full bg-surface-container-highest text-on-surface-variant font-mono text-[11px]">6</span>
-          </button>
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {filters.map(([key, label]) => <div key={key} className="rounded-2xl border border-white/10 bg-white/5 p-3"><p className="text-[10px] font-bold uppercase tracking-wider text-slate-300">{label}</p><p className="mt-1 text-2xl font-black">{counts[key]}</p></div>)}
         </div>
+      </section>
 
-        {/* SECTION: ACTIVE SPRINT HIGHLIGHT CARD */}
-        {(activeFilter === 'all' || activeFilter === 'active') && (
-          <section className="flex flex-col space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-primary text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>sprint</span>
-                <span className="text-xs font-bold text-on-surface uppercase tracking-wider">Active Sprint Spotlight</span>
-              </div>
-              <span className="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-mono text-[11px] font-bold">
-                Milestone 3 / 4
-              </span>
-            </div>
-
-            <div className="relative overflow-hidden rounded-xl bg-surface-container-lowest shadow-md p-4 sm:p-5 space-y-4 border border-outline-variant/20">
-              {/* Glow accent corner */}
-              <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-2xl pointer-events-none"></div>
-
-              {/* Top Row: Enterprise info & Live tracker */}
-              <div className="flex items-start justify-between gap-3 relative z-10">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center flex-shrink-0 overflow-hidden shadow-sm">
-                    <img 
-                      className="w-full h-full object-cover" 
-                      alt="CloudScale Technologies"
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAuDsp4Yw91dFQxK7qw7E4EZ8P-p1Np_Pqr8Ul-t8-lU4Ad-D6KCdZYQU0eSD8MYMahWlsntLLCCSj2nsNiyW5PlwdBvKJsnsM8pzse8KpC3XNuan9Bqidsr-NFTuMx5SZtMrzhZVEdB0FSe4fTqNFJ5WiLKJXch-TOG1DmJfPDhuPYqA10hQABkqUTiROVRzPBXXq-KIChPzZ8-z2F-wSNoCWtDTrNReXZ-emqkc"
-                    />
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-base font-bold text-on-surface truncate">CloudScale Technologies</span>
-                      <span className="w-4 h-4 rounded-full bg-primary text-on-primary flex items-center justify-center text-[10px]">
-                        <span className="material-symbols-outlined text-[12px]">verified</span>
-                      </span>
-                    </div>
-                    <span className="text-xs text-on-surface-variant truncate font-medium">Auth0 & RBAC Module Sprint</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-col items-end flex-shrink-0">
-                  <span className="px-2.5 py-1 rounded-full bg-primary-fixed text-on-primary-fixed font-mono text-xs font-bold flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span>
-                    Day 9 of 14
-                  </span>
-                </div>
-              </div>
-
-              {/* Sprint Stepper Tracker */}
-              <div className="space-y-1.5 pt-1">
-                <div className="flex items-center justify-between text-on-surface-variant font-mono text-[11px]">
-                  <span className="text-primary font-bold">M1 • Architecture</span>
-                  <span className="text-primary font-bold">M2 • Auth Flow</span>
-                  <span className="text-on-surface font-extrabold underline">M3 • RBAC Matrix</span>
-                  <span>M4 • Audit</span>
-                </div>
-                {/* Stepper track bar */}
-                <div className="w-full h-2 rounded-full bg-surface-container flex overflow-hidden">
-                  <div className="h-full bg-primary w-2/4"></div>
-                  <div className="h-full bg-secondary-container w-1/4 animate-pulse"></div>
-                  <div className="h-full bg-transparent w-1/4"></div>
-                </div>
-              </div>
-
-              {/* Metric Tiles Grid */}
-              <div className="grid grid-cols-2 gap-2.5 pt-1">
-                <div className="p-3 rounded-lg bg-surface-container-low flex flex-col justify-between border border-outline-variant/15">
-                  <div className="flex items-center justify-between text-on-surface-variant">
-                    <span className="text-[11px] font-semibold">Next Deliverable</span>
-                    <span className="material-symbols-outlined text-[16px] text-error">hourglass_top</span>
-                  </div>
-                  <div className="mt-1">
-                    <div className="text-sm font-bold text-on-surface">Milestone 3</div>
-                    <span className="text-xs text-error font-medium">Due in 2 days (48 hrs)</span>
-                  </div>
-                </div>
-
-                <div className="p-3 rounded-lg bg-surface-container-low flex flex-col justify-between border border-outline-variant/15">
-                  <div className="flex items-center justify-between text-on-surface-variant">
-                    <span className="text-[11px] font-semibold">Sprint Stipend</span>
-                    <span className="material-symbols-outlined text-[16px] text-primary">payments</span>
-                  </div>
-                  <div className="mt-1">
-                    <div className="text-sm font-bold text-on-surface">₹25,000</div>
-                    <span className="text-xs text-on-surface-variant font-medium">₹12,000 released</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Lead Mentor Micro-Tile */}
-              <div className="p-2.5 rounded-lg bg-surface-container-high/60 flex items-center justify-between border border-outline-variant/15">
-                <div className="flex items-center gap-2 min-w-0">
-                  <img 
-                    className="w-7 h-7 rounded-full object-cover" 
-                    alt="Dr. Rohan Mehta"
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFhVV8Cq-dkl96SVP6-Y_nTWaqnzqk_PHQiLAIRMGHR_EBhqNdC3ikvIAzKygcVS7QqT8FHAoGuTs7G9WgGNPxwUtX2nUpU3kBRE06iC5CTLkjxhpl78Z5ZqsUc51nEKSuQvAE5jOshX8HrxvbmpPwPVREln2SZkAajrtrYOqU6Qzmb88utnuubtryxKzyFqxZ5e4vow5f0h-caA_VhH9ovDiDW5lA0biJbgjUY1k"
-                  />
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-xs text-on-surface font-semibold truncate">Dr. Rohan Mehta • Lead Staff Mentor</span>
-                    <span className="text-[11px] text-on-surface-variant truncate">Next sync: Today, 4:30 PM IST</span>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => showToast('Opening direct mentorship chat with Dr. Rohan Mehta.', 'info')}
-                  className="material-symbols-outlined text-primary text-[18px] hover:scale-110 transition-transform"
-                >
-                  chat_bubble_outline
-                </button>
-              </div>
-
-              {/* Action Button Group */}
-              <div className="flex flex-col sm:flex-row gap-2 pt-1">
-                <button 
-                  onClick={handleSubmitMilestone3}
-                  className={`w-full py-2.5 px-4 rounded-lg font-bold text-xs shadow-sm active:scale-[0.98] transition-all flex items-center justify-center gap-2 ${
-                    m3Submitted 
-                      ? 'bg-emerald-600 text-white' 
-                      : 'bg-primary text-on-primary hover:bg-primary-container'
-                  }`}
-                  type="button"
-                >
-                  <span className="material-symbols-outlined text-[18px]">
-                    {m3Submitted ? 'check_circle' : 'cloud_upload'}
-                  </span>
-                  {m3Submitted ? 'Milestone 3 Submitted' : 'Submit Milestone 3'}
-                </button>
-
-                <button 
-                  onClick={() => showToast('Opening Slack channel #cloudscale-sprint-internal', 'info')}
-                  className="w-full py-2.5 px-4 rounded-lg bg-surface-container text-on-surface text-xs font-bold hover:bg-surface-container-highest transition-colors flex items-center justify-center gap-2"
-                  type="button"
-                >
-                  <span className="material-symbols-outlined text-[18px]">groups</span>
-                  Open Slack / Mentorship
-                </button>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* PRO-TIP BANNER */}
-        {!tipDismissed && (
-          <aside className="p-4 rounded-xl bg-tertiary-fixed text-on-tertiary-fixed flex items-start gap-3 shadow-xs relative overflow-hidden border border-tertiary/20">
-            <div className="w-8 h-8 rounded-full bg-white/70 flex items-center justify-center flex-shrink-0 text-tertiary">
-              <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>lightbulb</span>
-            </div>
-            <div className="flex flex-col min-w-0 pr-4">
-              <span className="text-xs font-bold">Pro-Tip for Micro-Interns</span>
-              <p className="text-xs text-on-tertiary-fixed leading-relaxed mt-0.5 font-medium">
-                Profiles with pinned, production-ready GitHub repos receive sponsor interview callbacks in under 24 hours.
-              </p>
-            </div>
-            <button 
-              onClick={() => setTipDismissed(true)}
-              aria-label="Dismiss tip" 
-              className="absolute top-2.5 right-2.5 text-on-tertiary-fixed/60 hover:text-on-tertiary-fixed" 
-              type="button"
-            >
-              <span className="material-symbols-outlined text-[18px]">close</span>
-            </button>
-          </aside>
-        )}
-
-        {/* SECTION: IN REVIEW APPLICATIONS */}
-        {(activeFilter === 'all' || activeFilter === 'in-review') && (
-          <section className="flex flex-col space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-secondary text-[20px]">pending_actions</span>
-                <h2 className="text-base font-bold text-on-surface">In Review Applications (2)</h2>
-              </div>
-              <button 
-                onClick={() => showToast('Sorted applications by calculated match score.', 'info')}
-                className="text-xs font-semibold text-primary flex items-center gap-0.5 hover:underline" 
-                type="button"
-              >
-                Sort by match
-                <span className="material-symbols-outlined text-[16px]">swap_vert</span>
-              </button>
-            </div>
-
-            {/* Application 1: FinFlow Technologies */}
-            <article className="p-4 sm:p-5 rounded-xl bg-surface-container-lowest shadow-sm flex flex-col space-y-3 border border-outline-variant/20 hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-lg bg-surface-container flex items-center justify-center overflow-hidden flex-shrink-0">
-                    <img 
-                      className="w-full h-full object-cover" 
-                      alt="FinFlow Technologies"
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWvWV45IkVTAORoMHTq_u5q24SQ7SUlCJJNdXWkCPxB5Ezti-wE8Xl7VS1oYsMO9x30i2VEEHVlFSQUKFY78U-fakoVAGseWmBEOgw7LuMDyhiAjH80QqxZ5eYhai9DBujMlK1zU_ZZAppg84k-7-IlQJjXFuns03Poi23PAOaRhUZ9MHXl2o3bzCdI3djeDPV0eiaKRRoLzTqWniYxOjSxxbgtiFJsWVlPsBUpgs"
-                    />
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-xs font-bold text-on-surface truncate">FinFlow Technologies</span>
-                      <span className="px-1.5 py-0.2 rounded bg-surface-container font-mono text-[10px] text-on-surface-variant font-semibold">Fintech</span>
-                    </div>
-                    <span 
-                      onClick={() => onViewProject && onViewProject('proj_1')}
-                      className="text-sm font-bold text-on-surface leading-snug mt-0.5 cursor-pointer hover:text-primary transition-colors"
-                    >
-                      Build Real-Time Webhook Dashboard
-                    </span>
-                  </div>
-                </div>
-
-                {/* 96% Match Badge with mini SVG ring */}
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-fixed/60 text-on-primary-fixed flex-shrink-0">
-                  <svg className="w-4 h-4 -rotate-90" viewBox="0 0 36 36">
-                    <path className="text-surface-container-highest" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="4"></path>
-                    <path className="text-primary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeDasharray="96, 100" strokeLinecap="round" strokeWidth="4"></path>
-                  </svg>
-                  <span className="font-mono text-xs font-bold">96%</span>
-                </div>
-              </div>
-
-              {/* Status Pill & Shortlist Highlight */}
-              <div className="p-3 rounded-lg bg-surface-container-low flex flex-col space-y-1.5 border border-outline-variant/15">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[16px] text-secondary">verified_user</span>
-                    <span className="text-xs text-secondary font-bold">Shortlisted</span>
-                  </div>
-                  <span className="text-[11px] text-on-surface-variant">Applied yesterday</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center font-mono text-[10px] font-bold">AS</div>
-                  <p className="text-xs text-on-surface truncate">
-                    Reviewed & shortlisted by <span className="font-bold">Ayaan Siddiqui</span> (Lead Architect)
-                  </p>
-                </div>
-              </div>
-
-              {/* Attached Github Repo Badge */}
-              <div className="flex items-center justify-between p-2.5 rounded-lg bg-surface-container-high/40 border border-outline-variant/15">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="material-symbols-outlined text-[18px] text-on-surface-variant">terminal</span>
-                  <span className="font-mono text-xs text-on-surface truncate font-semibold">
-                    github.com/zubairkhan-dev/webhook-visualizer
-                  </span>
-                </div>
-                <a 
-                  href="https://github.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="material-symbols-outlined text-[16px] text-primary flex-shrink-0"
-                >
-                  open_in_new
-                </a>
-              </div>
-
-              {/* Bottom Actions */}
-              <div className="flex items-center gap-2 pt-1">
-                <button 
-                  onClick={() => onViewProject && onViewProject('proj_1')}
-                  className="flex-1 py-2 px-3 rounded-lg bg-primary text-on-primary text-xs font-bold shadow-sm active:scale-[0.98] transition-transform flex items-center justify-center gap-1.5"
-                  type="button"
-                >
-                  <span>View Application</span>
-                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-                </button>
-                <button 
-                  onClick={() => showToast('Opening direct channel with Ayaan Siddiqui (FinFlow).', 'info')}
-                  aria-label="FinFlow Messages" 
-                  className="w-9 h-9 rounded-lg bg-surface-container text-on-surface-variant hover:text-on-surface flex items-center justify-center transition-colors" 
-                  type="button"
-                >
-                  <span className="material-symbols-outlined text-[18px]">forum</span>
-                </button>
-              </div>
-            </article>
-
-            {/* Application 2: HealthBridge AI */}
-            <article className="p-4 sm:p-5 rounded-xl bg-surface-container-lowest shadow-sm flex flex-col space-y-3 border border-outline-variant/20 hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-lg bg-surface-container flex items-center justify-center overflow-hidden flex-shrink-0">
-                    <img 
-                      className="w-full h-full object-cover" 
-                      alt="HealthBridge AI"
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBh2GByxwJS15tDmtniQTbGtUSix6ZtnCJrryNrkm4xpXNMb298BU3gwSnOj4vJvDyJeLBzsm2WpVeHQKweCaZqkwj2dWn-1ClaLV1qZdIy4sY1d1iDCTVHiu4ew4f989uHKHm2hgg5KWSChEnxTo8QP7nH14zjCa8LZpS5rRBcQqeolGqKjIIsm3qcI6vX1rm8MXdZksDmlDPmMqlJ3gG_kEaoQ1_e5GvHdHTczM"
-                    />
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-xs font-bold text-on-surface truncate">HealthBridge AI</span>
-                      <span className="px-1.5 py-0.2 rounded bg-surface-container font-mono text-[10px] text-on-surface-variant font-semibold">HealthTech</span>
-                    </div>
-                    <span 
-                      onClick={() => onViewProject && onViewProject('proj_2')}
-                      className="text-sm font-bold text-on-surface leading-snug mt-0.5 cursor-pointer hover:text-primary transition-colors"
-                    >
-                      FHIR Data Ingestion Pipeline
-                    </span>
-                  </div>
-                </div>
-
-                {/* 91% Match Badge */}
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed flex-shrink-0">
-                  <svg className="w-4 h-4 -rotate-90" viewBox="0 0 36 36">
-                    <path className="text-surface-container-highest" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="4"></path>
-                    <path className="text-secondary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeDasharray="91, 100" strokeLinecap="round" strokeWidth="4"></path>
-                  </svg>
-                  <span className="font-mono text-xs font-bold">91%</span>
-                </div>
-              </div>
-
-              {/* Status Highlight: Under Faculty Review */}
-              <div className="p-3 rounded-lg bg-surface-container-low flex flex-col space-y-1.5 border border-outline-variant/15">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[16px] text-tertiary">hourglass_bottom</span>
-                    <span className="text-xs text-tertiary font-bold">Review in Progress</span>
-                  </div>
-                  <span className="text-[11px] text-on-surface-variant">Applied 3 days ago</span>
-                </div>
-                <p className="text-xs text-on-surface">
-                  Under Faculty & Sponsor Review • Co-op credit approval pending
-                </p>
-              </div>
-
-              {/* Skill tags */}
-              <div className="flex flex-wrap gap-1.5">
-                <span className="px-2.5 py-0.5 rounded-full bg-surface-container font-mono text-[11px] text-on-surface-variant font-semibold">Python</span>
-                <span className="px-2.5 py-0.5 rounded-full bg-surface-container font-mono text-[11px] text-on-surface-variant font-semibold">HL7 / FHIR</span>
-                <span className="px-2.5 py-0.5 rounded-full bg-surface-container font-mono text-[11px] text-on-surface-variant font-semibold">Apache Kafka</span>
-                <span className="px-2 py-0.5 rounded-full bg-primary-fixed/40 text-primary font-mono text-[11px] font-bold">+3 verified</span>
-              </div>
-
-              {/* Bottom Actions */}
-              <div className="flex items-center gap-2 pt-1">
-                <button 
-                  onClick={() => showToast('Application notes updated with latest GitHub branch.', 'info')}
-                  className="flex-1 py-2 px-3 rounded-lg bg-surface-container text-on-surface text-xs font-bold hover:bg-surface-container-highest transition-colors flex items-center justify-center gap-1.5"
-                  type="button"
-                >
-                  <span className="material-symbols-outlined text-[16px]">edit_note</span>
-                  Withdraw or Edit
-                </button>
-                <button 
-                  onClick={() => showToast('Next review milestone: Friday 5:00 PM PST', 'info')}
-                  className="py-2 px-3 rounded-lg bg-surface-container-high text-on-surface-variant text-xs font-bold hover:text-on-surface flex items-center justify-center"
-                  type="button"
-                >
-                  Timeline
-                </button>
-              </div>
-            </article>
-          </section>
-        )}
-
-        {/* QUICK ACTION / DISCOVERY TEASER */}
-        <div className="p-4 rounded-xl bg-surface-container flex items-center justify-between gap-3 border border-outline-variant/15">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-lg bg-primary text-on-primary flex items-center justify-center flex-shrink-0">
-              <span className="material-symbols-outlined text-[20px]">travel_explore</span>
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-xs font-bold text-on-surface truncate">Ready for another challenge?</span>
-              <span className="text-[11px] text-on-surface-variant truncate">14 sprints match your verified Python skills</span>
-            </div>
-          </div>
-          <button 
-            onClick={() => setActivePage && setActivePage('explore')}
-            className="px-3 py-1.5 rounded-lg bg-surface-container-lowest text-primary text-xs font-bold shadow-xs hover:bg-white flex-shrink-0 flex items-center gap-1"
-            type="button"
-          >
-            Browse
-            <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
-          </button>
-        </div>
-
+      <div className="flex gap-2 overflow-x-auto pb-1" aria-label="Filter applications">
+        {filters.map(([key, label]) => <button key={key} onClick={() => setActiveFilter(key)} className={`shrink-0 rounded-full px-4 py-2 text-xs font-bold ${activeFilter === key ? 'bg-slate-900 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50'}`}>{label} <span className="ml-1 opacity-70">{counts[key]}</span></button>)}
       </div>
+
+      <section className="space-y-4">
+        {visibleApplications.map(application => {
+          const isCompany = role === 'company';
+          const busy = busyId === application._id;
+          const reviewData = application.workReview;
+          const applicantOrEmployer = isCompany ? application.studentName : application.companyName;
+          return <article key={application._id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2"><span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide ${application.status === 'Completed' ? 'bg-emerald-100 text-emerald-800' : application.status === 'Rejected' ? 'bg-rose-100 text-rose-700' : 'bg-indigo-50 text-indigo-700'}`}>{application.status}</span><span className="text-[11px] text-slate-400">Applied {application.appliedAt ? new Date(application.appliedAt).toLocaleDateString() : 'recently'}</span></div>
+                <h2 className="mt-3 text-lg font-extrabold text-slate-900">{application.projectTitle}</h2>
+                <p className="mt-1 text-sm text-slate-600">{isCompany ? 'Applicant' : 'Company'}: <span className="font-semibold">{applicantOrEmployer}</span></p>
+                {application.matchPercentage != null && <p className="mt-2 text-xs font-bold text-indigo-700">{application.matchPercentage}% verified-skill match</p>}
+                {application.coverNote && <p className="mt-3 rounded-xl bg-slate-50 p-3 text-sm leading-6 text-slate-600">{application.coverNote}</p>}
+                {application.feedback && <p className="mt-3 text-sm text-slate-600"><span className="font-bold">Company note:</span> {application.feedback}</p>}
+              </div>
+              <div className="flex shrink-0 flex-wrap gap-2">
+                {onViewProject && <button onClick={() => onViewProject(application.projectId)} className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">View project</button>}
+                {isCompany && ['Pending', 'Under Review', 'Shortlisted'].includes(application.status) && <>
+                  <button disabled={busy} onClick={() => changeStatus(application, 'Shortlisted')} className="rounded-xl bg-indigo-50 px-3 py-2 text-xs font-bold text-indigo-700 disabled:opacity-50">Shortlist</button>
+                  <button disabled={busy} onClick={() => changeStatus(application, 'Accepted')} className="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-bold text-white disabled:opacity-50">Accept</button>
+                  <button disabled={busy} onClick={() => changeStatus(application, 'Rejected')} className="rounded-xl bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700 disabled:opacity-50">Reject</button>
+                </>}
+                {isCompany && application.status === 'Accepted' && <button disabled={busy} onClick={() => changeStatus(application, 'In Progress')} className="rounded-xl bg-indigo-600 px-3 py-2 text-xs font-bold text-white disabled:opacity-50">Start work</button>}
+                {isCompany && ['Accepted', 'In Progress'].includes(application.status) && <button onClick={() => setCompletionFor(completionFor === application._id ? '' : application._id)} className="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-bold text-white">Record outcome</button>}
+              </div>
+            </div>
+
+            {completionFor === application._id && <div className="border-t border-slate-100 bg-emerald-50/50 p-5">
+              <h3 className="font-bold text-slate-900">Verify completed work</h3><p className="mt-1 text-xs text-slate-600">This employer review becomes part of the student’s work reputation. Only submit it after the sprint is complete.</p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <label className="text-xs font-semibold text-slate-700 sm:col-span-2">Outcome summary<textarea value={review.summary} onChange={e => setReview(current => ({ ...current, summary: e.target.value }))} minLength={20} maxLength={2000} rows={3} placeholder="What did the student deliver? Include the result and quality of the work." className="mt-1 block w-full rounded-xl border border-slate-200 bg-white p-3 text-sm font-normal outline-none focus:border-emerald-500" /></label>
+                <label className="text-xs font-semibold text-slate-700">Employer rating<select value={review.rating} onChange={e => setReview(current => ({ ...current, rating: e.target.value }))} className="mt-1 block w-full rounded-xl border border-slate-200 bg-white p-3 text-sm"><option value="5">5 — Excellent</option><option value="4">4 — Strong</option><option value="3">3 — Meets expectations</option><option value="2">2 — Needs improvement</option><option value="1">1 — Unsatisfactory</option></select></label>
+                <label className="text-xs font-semibold text-slate-700">Skills demonstrated<input value={review.skills} onChange={e => setReview(current => ({ ...current, skills: e.target.value }))} placeholder="React, API design (comma-separated)" className="mt-1 block w-full rounded-xl border border-slate-200 bg-white p-3 text-sm font-normal" /></label>
+                <label className="text-xs font-semibold text-slate-700 sm:col-span-2">Proof of work link (optional)<input type="url" value={review.evidenceUrl} onChange={e => setReview(current => ({ ...current, evidenceUrl: e.target.value }))} placeholder="https://…" className="mt-1 block w-full rounded-xl border border-slate-200 bg-white p-3 text-sm font-normal" /></label>
+              </div>
+              <button disabled={busy || review.summary.trim().length < 20} onClick={() => completeWork(application)} className="mt-4 inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">{busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}Confirm completed sprint</button>
+            </div>}
+
+            {reviewData && <div className="border-t border-emerald-100 bg-emerald-50/60 p-5">
+              <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="flex items-center gap-2 text-sm font-extrabold text-emerald-900"><CheckCircle2 className="h-4 w-4" />Employer-verified outcome</h3><span className="inline-flex items-center gap-1 text-sm font-bold text-amber-700"><Star className="h-4 w-4 fill-current" />{reviewData.rating}/5</span></div>
+              <p className="mt-2 text-sm leading-6 text-slate-700">{reviewData.summary}</p>
+              <p className="mt-2 text-[11px] text-slate-500">Reviewed by {reviewData.reviewerName || application.companyName}{reviewData.reviewedAt ? ` · ${new Date(reviewData.reviewedAt).toLocaleDateString()}` : ''}</p>
+              {reviewData.skillsDemonstrated?.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{reviewData.skillsDemonstrated.map(skill => <span key={skill} className="rounded-full bg-white px-3 py-1 text-[11px] font-bold text-emerald-800 ring-1 ring-emerald-200">{skill}</span>)}</div>}
+              {reviewData.evidenceUrl && <a href={reviewData.evidenceUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-indigo-700 hover:underline">View proof of work <ExternalLink className="h-3.5 w-3.5" /></a>}
+            </div>}
+          </article>;
+        })}
+        {visibleApplications.length === 0 && <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-14 text-center"><BriefcaseBusiness className="mx-auto h-8 w-8 text-slate-300" /><h2 className="mt-3 font-bold text-slate-800">No applications in this view yet</h2><p className="mt-1 text-sm text-slate-500">Applications and verified work outcomes will appear here.</p><button onClick={() => setActivePage?.('explore')} className="mt-4 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-on-primary">Explore opportunities</button></div>}
+      </section>
     </div>
   );
 }

@@ -9,6 +9,11 @@ export const initialUsers = [
     degree: "B.Tech in Computer Science",
     gradYear: "2027",
     skills: ["React", "TypeScript", "Next.js", "Tailwind", "Python", "FastAPI", "PostgreSQL"],
+    verifiedSkills: [
+      { skill: "React", score: 92, level: "Advanced", verifiedAt: new Date("2026-09-20"), assessmentVersion: "v2" },
+      { skill: "TypeScript", score: 86, level: "Advanced", verifiedAt: new Date("2026-09-18"), assessmentVersion: "v2" },
+      { skill: "Python", score: 82, level: "Intermediate", verifiedAt: new Date("2026-09-15"), assessmentVersion: "v2" }
+    ],
     interests: ["Full Stack Development", "API Design", "Distributed Systems", "Developer Tooling"],
     resumeUrl: "https://zubairkhan.dev/resume.pdf",
     resumeFilename: "Zubair_Khan_SWE_Resume.pdf",
@@ -33,6 +38,10 @@ export const initialUsers = [
     degree: "B.Tech in Software Engineering",
     gradYear: "2026",
     skills: ["Python", "Redis", "Docker", "FastAPI", "PostgreSQL", "Kafka"],
+    verifiedSkills: [
+      { skill: "Python", score: 89, level: "Advanced", verifiedAt: new Date("2026-09-19"), assessmentVersion: "v2" },
+      { skill: "Docker", score: 78, level: "Intermediate", verifiedAt: new Date("2026-09-16"), assessmentVersion: "v2" }
+    ],
     interests: ["High-Frequency Data", "Distributed Cache", "Cloud Security"],
     resumeUrl: "https://example.com/resumes/tariq.pdf",
     resumeFilename: "Tariq_Mansoor_Backend_SWE.pdf",

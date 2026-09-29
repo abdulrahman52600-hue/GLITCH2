@@ -30,7 +30,7 @@ const SKILL_ALIASES = {
 
 export function normalizeSkill(skill) {
   if (!skill) return '';
-  const trimmed = skill.trim().toLowerCase();
+  const trimmed = (typeof skill === 'object' ? skill.skill : skill)?.trim?.().toLowerCase() || '';
   return SKILL_ALIASES[trimmed] || trimmed;
 }
 
